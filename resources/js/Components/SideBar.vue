@@ -34,7 +34,7 @@
         </div>
 
         <!-- Main content -->
-        <div class="flex-1 p-2">
+        <div class="flex-1 p-2 bg-green-100">
             <!-- Toggle Button for Sidebar on Small Screens -->
             <button @click="toggleSidebar" class="lg:hidden text-gray-800 hover:text-gray-600">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"

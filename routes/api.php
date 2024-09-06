@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/user', [UserController::class, 'show']);
-    Route::post('/save-farm-zone', [FarmZoneController::class, 'store']);
+    Route::post('/farm-zone', [FarmZoneController::class, 'store']);
+    Route::get('/farm-zone', [FarmZoneController::class, 'index']);
 });
 
 

@@ -1,24 +1,21 @@
 <template>
-  <div class="container mx-auto" style="width: 100%;">
+  <div class="container mx-auto bg-green-100" style="width: 100%;">
     <AuthNavBar />
     <div class="flex">
       <SideBar />
+      <FarmNameModal :visible="isModalVisible" @submit="handleModalSubmit" @cancel="handleModalCancel" />
       <div class="flex-1">
         <div class="relative">
           <div id="map" class="leaflet-container"
             style="height: 600px; width: 70%; border: 1rem solid green; margin: auto; margin-top: 15px;"></div>
 
-          <!-- Button Container for Labels and Save -->
           <div class="absolute top-2 right-2 flex flex-col space-y-2">
-            <!-- Toggle Button for Labels -->
-            <button @click="toggleLabels" class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">
-              Toggle Labels
-            </button>
-
-            <!-- Save Polygon Button -->
-            <button v-if="polygonDrawn" @click="savePolygon" class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">
-              Save Polygon
-            </button>
+            <button @click="toggleLabels"
+              class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">Toggle
+              Labels</button>
+            <button v-if="polygonDrawn" @click="savePolygon"
+              class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">Save
+              Polygon</button>
           </div>
         </div>
       </div>
@@ -36,11 +33,13 @@ import 'leaflet.gridlayer.googlemutant';
 import AuthNavBar from '@/Components/AuthNavBar.vue';
 import SideBar from '@/Components/SideBar.vue';
 import axios from 'axios';
+import FarmNameModal from '@/Components/FarmNameModal.vue';
 
 const googleMapsKey = ''; // Your Google Maps API key
-const showLabels = ref(true); // Data property to toggle labels visibility
-const polygonDrawn = ref(false); // Flag to track if a polygon is drawn
-const drawnCoordinates = ref(null); // Stores the drawn polygon coordinates
+const showLabels = ref(true);
+const polygonDrawn = ref(false);
+const drawnCoordinates = ref(null);
+const isModalVisible = ref(false);
 
 let googleLayer = null;
 let map;
@@ -48,10 +47,10 @@ let map;
 const toggleLabels = () => {
   showLabels.value = !showLabels.value;
   if (googleLayer) {
-    map.removeLayer(googleLayer); // Remove the current layer
+    map.removeLayer(googleLayer);
 
     googleLayer = L.gridLayer.googleMutant({
-      type: showLabels.value ? 'hybrid' : 'satellite', // Use 'hybrid' for labels, 'satellite' without labels
+      type: showLabels.value ? 'hybrid' : 'satellite',
       styles: showLabels.value ? defaultStyle : hideLabelsStyle,
       maxZoom: 18,
       key: googleMapsKey
@@ -59,8 +58,7 @@ const toggleLabels = () => {
   }
 };
 
-const defaultStyle = []; // Default Google Maps style (no customizations)
-
+const defaultStyle = [];
 const hideLabelsStyle = [
   {
     featureType: 'all',
@@ -78,7 +76,7 @@ onMounted(() => {
   }
 
   googleLayer = L.gridLayer.googleMutant({
-    type: 'hybrid', // I'm using 'hybrid' initially
+    type: 'hybrid',
     styles: defaultStyle,
     maxZoom: 18,
     key: googleMapsKey
@@ -87,10 +85,25 @@ onMounted(() => {
   const drawnItems = L.featureGroup().addTo(map);
 
   const drawControl = new L.Control.Draw({
+    draw: {
+      polyline: false,
+      rectangle: false,
+      circle: false,
+      marker: false,
+      circlemarker: false,
+      polygon: true
+    },
     edit: {
-      featureGroup: drawnItems
+      featureGroup: drawnItems,
+      edit: {
+        selectedPathOptions: {
+          maintainColor: true
+        }
+      },
+      remove: {}
     }
   });
+
   map.addControl(drawControl);
 
   map.on(L.Draw.Event.CREATED, (event) => {
@@ -100,41 +113,44 @@ onMounted(() => {
     // Get the coordinates of the drawn polygon
     drawnCoordinates.value = layer.toGeoJSON().geometry.coordinates;
     polygonDrawn.value = true; // Enable the "Save Polygon" button
-    console.log('Polygon coordinates:', drawnCoordinates.value);
+  });
+
+  map.on(L.Draw.Event.DELETED, () => {
+    // Handle the deletion of polygons
+    polygonDrawn.value = false; // Disable the "Save Polygon" button
+    drawnCoordinates.value = null; // Reset the coordinates
   });
 });
 
 const savePolygon = () => {
   if (drawnCoordinates.value) {
-    axios.post('/api/save-farm-zone', {
-      coordinates: drawnCoordinates.value
+    isModalVisible.value = true;
+  }
+};
+
+const handleModalSubmit = (farmName) => {
+  if (drawnCoordinates.value) {
+    axios.post('/api/farm-zone', {
+      coordinates: drawnCoordinates.value,
+      farm_name: farmName
     }, {
       withCredentials: true
     })
-    .then(response => {
-      console.log('Polygon saved:', response.data);
-      polygonDrawn.value = false; // Disable the "Save Polygon" button after saving
-      drawnCoordinates.value = null; // Reset the coordinates
-      alert('Polygon saved successfully!');
-    })
-    .catch(error => {
-      console.error('Error saving polygon:', error);
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.log('Error response data:', error.response.data);
-        console.log('Error response status:', error.response.status);
-        console.log('Error response headers:', error.response.headers);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.log('Error request data:', error.request);
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.log('Error message:', error.message);
-      }
-      alert('Failed to save the polygon! Check the console for more details.');
-    });
+      .then(response => {
+        console.log('Polygon saved:', response.data);
+        polygonDrawn.value = false;
+        drawnCoordinates.value = null;
+        isModalVisible.value = false;
+        alert('The farm zone is saved successfully!');
+      })
+      .catch(error => {
+        alert('A problem has occurred, failed to save the farm zone!');
+      });
   }
+};
+
+const handleModalCancel = () => {
+  isModalVisible.value = false;
 };
 
 </script>

@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('farm_zones', function (Blueprint $table) {
             $table->id();
+            $table->string('farm_name');
             $table->unsignedBigInteger('user_id');
             $table->json('coordinates'); // Store the polygon coordinates as JSON
             $table->timestamps();

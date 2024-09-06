@@ -5,7 +5,7 @@ import SideBar from '@/Components/SideBar.vue';
 
 <template>
 
-  <div class="container mx-auto" style="width: 100%;">
+  <div class="container mx-auto bg-green-100" style="width: 100%;">
     <AuthNavBar/>
     <div class="flex">
       <SideBar/>
