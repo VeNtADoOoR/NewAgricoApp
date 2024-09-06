@@ -15,7 +15,7 @@ class UserController extends Controller
         return response()->json([
             'id' => $user->id,
             'email' => $user->email,
-            'profile_photo_url' => $user->profile_photo_url,
+            'profile_photo_path' => $user->profile_photo_path,
             'first_name' => $user->agr_fname,
             'last_name' => $user->agr_lname,
         ]);

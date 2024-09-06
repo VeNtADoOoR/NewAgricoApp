@@ -43,7 +43,7 @@ class HandleInertiaRequests extends Middleware
                     'first_name' => Auth::user()->agr_fname,
                     'last_name' => Auth::user()->agr_lname,
                     'email' => Auth::user()->email,
-                    'profile_photo_url' => Auth::user()->profile_photo_url,
+                    'profile_photo_path' => Auth::user()->profile_photo_path,
                 ] : null,
             ],
         ]);

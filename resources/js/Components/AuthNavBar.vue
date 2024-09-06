@@ -126,13 +126,14 @@
 import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import ResponsiveNavLink from './ResponsiveNavLink.vue';
+import axios from 'axios';
 
 const isOpen = ref(false);
 const userDropdownOpen = ref(false);
 
 const { props } = usePage();
 const user = props.auth.user;
-const userPhoto = ref(user?.profile_photo_url || '/images/default-user-photo.jpg');
+const userPhoto = ref(user?.profile_photo_path || '/images/default-user-photo.jpg');
 const fullName = ref(`${user?.first_name} ${user?.last_name}`);
 
 const logout = async () => {

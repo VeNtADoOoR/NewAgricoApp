@@ -6,6 +6,9 @@
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB-a9MpNLxvCNnaKEYD-2jAv25UG6tPEIQ"></script>
 
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="api_token" content="{{ optional(Auth::user())->api_token }}">
+        
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

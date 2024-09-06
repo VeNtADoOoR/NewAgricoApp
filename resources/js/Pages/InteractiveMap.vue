@@ -8,10 +8,18 @@
           <div id="map" class="leaflet-container"
             style="height: 600px; width: 70%; border: 1rem solid green; margin: auto; margin-top: 15px;"></div>
 
-          <!-- Toggle Button for Labels -->
-          <button @click="toggleLabels" class="absolute top-2 right-2 bg-green-500 text-white px-4 py-2 rounded-md">
-            Toggle Labels
-          </button>
+          <!-- Button Container for Labels and Save -->
+          <div class="absolute top-2 right-2 flex flex-col space-y-2">
+            <!-- Toggle Button for Labels -->
+            <button @click="toggleLabels" class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">
+              Toggle Labels
+            </button>
+
+            <!-- Save Polygon Button -->
+            <button v-if="polygonDrawn" @click="savePolygon" class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">
+              Save Polygon
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -31,8 +39,11 @@ import axios from 'axios';
 
 const googleMapsKey = ''; // Your Google Maps API key
 const showLabels = ref(true); // Data property to toggle labels visibility
+const polygonDrawn = ref(false); // Flag to track if a polygon is drawn
+const drawnCoordinates = ref(null); // Stores the drawn polygon coordinates
 
 let googleLayer = null;
+let map;
 
 const toggleLabels = () => {
   showLabels.value = !showLabels.value;
@@ -58,8 +69,6 @@ const hideLabelsStyle = [
   }
 ];
 
-let map;
-
 onMounted(() => {
   map = L.map('map').setView([30.427755, -9.598107], 11);
 
@@ -69,7 +78,7 @@ onMounted(() => {
   }
 
   googleLayer = L.gridLayer.googleMutant({
-    type: 'hybrid', // Im using 'hybrid' initially
+    type: 'hybrid', // I'm using 'hybrid' initially
     styles: defaultStyle,
     maxZoom: 18,
     key: googleMapsKey
@@ -89,27 +98,45 @@ onMounted(() => {
     drawnItems.addLayer(layer);
 
     // Get the coordinates of the drawn polygon
-    const coordinates = layer.toGeoJSON().geometry.coordinates;
-    console.log('Polygon coordinates:', coordinates);
-
-    // Send the coordinates to the backend
-    savePolygon(coordinates);
+    drawnCoordinates.value = layer.toGeoJSON().geometry.coordinates;
+    polygonDrawn.value = true; // Enable the "Save Polygon" button
+    console.log('Polygon coordinates:', drawnCoordinates.value);
   });
-
-  const savePolygon = (coordinates) => {
-    axios.post('/api/save-farm-zone', {
-      coordinates: coordinates
-    })
-      .then(response => {
-        console.log('Polygon saved:', response.data);
-        // You can handle success feedback to the user here
-      })
-      .catch(error => {
-        console.error('Error saving polygon:', error);
-        // You can handle error feedback to the user here
-      });
-  };
 });
+
+const savePolygon = () => {
+  if (drawnCoordinates.value) {
+    axios.post('/api/save-farm-zone', {
+      coordinates: drawnCoordinates.value
+    }, {
+      withCredentials: true
+    })
+    .then(response => {
+      console.log('Polygon saved:', response.data);
+      polygonDrawn.value = false; // Disable the "Save Polygon" button after saving
+      drawnCoordinates.value = null; // Reset the coordinates
+      alert('Polygon saved successfully!');
+    })
+    .catch(error => {
+      console.error('Error saving polygon:', error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.log('Error response data:', error.response.data);
+        console.log('Error response status:', error.response.status);
+        console.log('Error response headers:', error.response.headers);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.log('Error request data:', error.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.log('Error message:', error.message);
+      }
+      alert('Failed to save the polygon! Check the console for more details.');
+    });
+  }
+};
+
 </script>
 
 <style scoped>
