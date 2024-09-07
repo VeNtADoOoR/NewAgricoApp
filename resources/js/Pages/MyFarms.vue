@@ -87,8 +87,12 @@ const cancelUpdate = () => {
               <tr v-for="farm in farms" :key="farm.id">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ farm.farm_name }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button 
-                  class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200">View</button>
+                  <a :href="`/farm-view/${farm.id}`">
+                    <button
+                      class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200">
+                      View
+                    </button>
+                  </a>
                   <button @click="showUpdateFarmModal(farm)"
                     class="bg-yellow-500 text-white px-4 py-2 rounded mx-4 hover:bg-yellow-400 transition duration-200">Change
                     the name</button>

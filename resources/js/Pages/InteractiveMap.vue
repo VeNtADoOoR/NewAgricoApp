@@ -47,6 +47,9 @@ const polygonDrawn = ref(false);
 const drawnCoordinates = ref(null);
 const isModalVisible = ref(false);
 
+// Declare drawnItems at the top level so it's accessible throughout
+let drawnItems = null;
+
 let googleLayer = null;
 let map;
 
@@ -88,7 +91,8 @@ onMounted(() => {
     key: googleMapsKey
   }).addTo(map);
 
-  const drawnItems = L.featureGroup().addTo(map);
+  // Initialize drawnItems here so it's globally accessible
+  drawnItems = L.featureGroup().addTo(map);
 
   const drawControl = new L.Control.Draw({
     draw: {
@@ -144,13 +148,20 @@ const handleModalSubmit = (farmName) => {
     })
       .then(response => {
         console.log('Polygon saved:', response.data);
+
+        // Clear the drawn polygon after a successful save
+        if (drawnItems) {
+          drawnItems.clearLayers(); // This clears the drawn polygons
+        }
+
         polygonDrawn.value = false;
         drawnCoordinates.value = null;
         isModalVisible.value = false;
-        //alert('The farm zone is saved successfully!');
-        customAlert('the farm zone is saved successfully !')
+
+        customAlert('The farm zone is saved successfully!');
       })
       .catch(error => {
+        console.error('Error saving farm zone:', error); // Log the error
         alert('A problem has occurred, failed to save the farm zone!');
       });
   }
@@ -176,6 +187,7 @@ const closeAlert = () => {
   showCustomAlert.value = false;
 };
 </script>
+
 
 <style scoped>
 .leaflet-container {

@@ -11,6 +11,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/farm-zone', [FarmZoneController::class, 'index']);
     Route::delete('/farm-zone/{id}', [FarmZoneController::class,'destroy']);
     Route::put('/farm-zone/{id}', [FarmZoneController::class,'update']);
+    Route::get('/farm-zone/{id}', [FarmZoneController::class, 'show']);
 });
 
 

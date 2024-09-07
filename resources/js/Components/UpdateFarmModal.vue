@@ -32,7 +32,7 @@ const updateFarm = async () => {
     try {
         await axios.put(`/api/farm-zone/${props.farmId}`, { farm_name: newFarmName.value });
         emit('update');
-        farms.value = farms.value.filter(farm => farm.id !== farmToDelete.value.id);
+        
     } catch (error) {
         console.error('Error updating farm name:', error);
         alert('Error updating farm name.');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\FarmZoneController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,4 +38,5 @@ Route::middleware([
     Route::get('/notifications', function () {
         return Inertia::render('NotificationInterface');
     })->name('NotificationInterface');
+    Route::get('/farm-view/{id}', [FarmZoneController::class, 'viewFarm'])->name('FarmView');
 });

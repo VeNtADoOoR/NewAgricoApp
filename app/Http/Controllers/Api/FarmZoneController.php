@@ -6,15 +6,13 @@ use App\Http\Controllers\Controller;
 use Auth;
 use Illuminate\Http\Request;
 use App\Models\FarmZone;
+use Inertia\Inertia;
 
 class FarmZoneController extends Controller
 {
     public function index()
     {
-        // Fetch farms that belong to the authenticated user
         $farms = FarmZone::where('user_id', auth()->id())->get();
-
-        // Return the farms as a JSON response
         return response()->json($farms);
     }
     public function store(Request $request)
@@ -60,5 +58,20 @@ class FarmZoneController extends Controller
         }
         // If the farm zone was not found
         return response()->json(['message' => 'Farm zone not found.'], 404);
+    }
+    public function viewFarm($id)
+    {
+        $farm = FarmZone::findOrFail($id);
+        return Inertia::render('FarmView', ['farm' => $farm]);
+    }
+
+    public function show($id)
+    {
+        // Fetch the farm zone by ID
+        $farmZone = FarmZone::find($id);
+        if (!$farmZone) {
+            return response()->json(['message' => 'Farm zone not found'], 404);
+        }
+        return response()->json($farmZone);
     }
 }
