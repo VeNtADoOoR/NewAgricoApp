@@ -13,7 +13,7 @@ class FarmZoneController extends Controller
     {
         // Fetch farms that belong to the authenticated user
         $farms = FarmZone::where('user_id', auth()->id())->get();
-    
+
         // Return the farms as a JSON response
         return response()->json($farms);
     }
@@ -33,5 +33,32 @@ class FarmZoneController extends Controller
         ]);
 
         return response()->json(['success' => true, 'farmZone' => $farmZone]);
+    }
+
+    public function destroy($id)
+    {
+        // Find the farm zone by ID
+        $farm = FarmZone::findOrFail($id);
+
+        // Delete the farm zone
+        $farm->delete();
+
+        // Return a success response
+        return response()->json(['message' => 'Farm zone deleted successfully!']);
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Find the farm zone by ID
+        $farmZone = FarmZone::find($id);
+        // Check if the farm zone exists
+        if ($farmZone) {
+            // Update the farm name
+            $farmZone->farm_name = $request->input('farm_name');
+            $farmZone->save();  // Save changes
+            return response()->json(['message' => 'Farm zone updated successfully!'], 200);
+        }
+        // If the farm zone was not found
+        return response()->json(['message' => 'Farm zone not found.'], 404);
     }
 }

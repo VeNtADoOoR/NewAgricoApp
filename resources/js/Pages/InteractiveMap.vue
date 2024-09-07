@@ -1,5 +1,11 @@
 <template>
   <div class="container mx-auto bg-green-100" style="width: 100%;">
+    <div v-if="showCustomAlert" class="fixed inset-0 flex items-center justify-center z-50">
+      <div class="bg-white p-5 border border-gray-300 rounded shadow-lg relative">
+        <span class="text-gray-700">{{ alertMessage }}</span>
+        <button @click="closeAlert" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">x</button>
+      </div>
+    </div>
     <AuthNavBar />
     <div class="flex">
       <SideBar />
@@ -14,8 +20,8 @@
               class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">Toggle
               Labels</button>
             <button v-if="polygonDrawn" @click="savePolygon"
-              class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">Save
-              Polygon</button>
+              class="bg-green-700 hover:bg-green-500 text-white px-4 py-2 rounded-md transition duration-200">Save the
+              farm</button>
           </div>
         </div>
       </div>
@@ -141,7 +147,8 @@ const handleModalSubmit = (farmName) => {
         polygonDrawn.value = false;
         drawnCoordinates.value = null;
         isModalVisible.value = false;
-        alert('The farm zone is saved successfully!');
+        //alert('The farm zone is saved successfully!');
+        customAlert('the farm zone is saved successfully !')
       })
       .catch(error => {
         alert('A problem has occurred, failed to save the farm zone!');
@@ -152,7 +159,22 @@ const handleModalSubmit = (farmName) => {
 const handleModalCancel = () => {
   isModalVisible.value = false;
 };
+const showCustomAlert = ref(false);
+const alertMessage = ref('');
 
+// Function to trigger the custom alert
+const customAlert = (message) => {
+  alertMessage.value = message;
+  showCustomAlert.value = true;
+
+  // Auto-hide after 3 seconds (optional)
+  setTimeout(() => {
+    showCustomAlert.value = false;
+  }, 3000);
+};
+const closeAlert = () => {
+  showCustomAlert.value = false;
+};
 </script>
 
 <style scoped>
