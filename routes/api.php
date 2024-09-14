@@ -12,6 +12,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::delete('/farm-zone/{id}', [FarmZoneController::class,'destroy']);
     Route::put('/farm-zone/{id}', [FarmZoneController::class,'update']);
     Route::get('/farm-zone/{id}', [FarmZoneController::class, 'show']);
+    Route::get('/farm-zone/{id}/coordinates', [FarmZoneController::class, 'getFarmZoneCoordinates']);
+    Route::get('/farm-zone/{id}/ndvi', [FarmZoneController::class, 'calculateNDVI']);
 });
 
 

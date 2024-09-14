@@ -1,107 +1,115 @@
 <template>
     <div class="container mx-auto bg-green-100" style="width: 100%;">
-        <div class="flex">
-            <div class="flex-1">
-                <div class="relative">
-                    <div id="map" class="leaflet-container"
-                        style="height: 600px; width: 70%; border: 1rem solid green; margin: auto; margin-top: 15px;">
-                    </div>
-                </div>
+      <div class="flex">
+        <div class="flex-1">
+          <div class="relative">
+            <button
+              class="bg-green-700 text-white px-4 py-2 rounded mt-4 hover:bg-green-500 transition duration-200"
+              @click="showNDVILayer">Show NDVI Layer</button>
+            <div id="map" class="leaflet-container"
+              style="height: 600px; width: 70%; border: 1rem solid green; margin: auto; margin-top: 15px;">
             </div>
+          </div>
         </div>
+      </div>
     </div>
-</template>
-
-<script setup>
-import { onMounted, ref } from 'vue';
-import axios from 'axios';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.gridlayer.googlemutant';
-
-const googleMapsKey = '';
-
-const map = ref(null);
-const coordinates = ref([]);
-
-// Extract the farm ID from the URL
-const getFarmIdFromUrl = () => {
+  </template>
+  
+  <script setup>
+  import { onMounted, ref } from 'vue';
+  import axios from 'axios';
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+  import 'leaflet.gridlayer.googlemutant';
+  
+  const googleMapsKey = ''; // Your Google Maps API key
+  const map = ref(null);
+  const coordinates = ref([]);
+  const farmId = ref(null); // Ref to store the farm ID
+  const ndviLayer = ref(null); // Store NDVI layer reference
+  
+  const getFarmIdFromUrl = () => {
     const url = new URL(window.location.href);
     return url.pathname.split('/').pop(); // Get the last part of the URL
-};
-
-const fetchFarmZoneData = async (id) => {
+  };
+  
+  const fetchFarmZoneData = async (id) => {
     try {
-        const response = await axios.get(`/api/farm-zone/${id}`);
-        const rawCoordinates = response.data.coordinates;
-
-        // Convert coordinates to [latitude, longitude]
-        coordinates.value = convertCoordinates(rawCoordinates);
-        console.log('Converted Coordinates:', coordinates.value); // Debug log
-
-        // Initialize the map with the fetched coordinates
-        initializeMap();
+      const response = await axios.get(`/api/farm-zone/${id}`);
+      const rawCoordinates = response.data.coordinates;
+  
+      // Convert coordinates to [latitude, longitude]
+      coordinates.value = convertCoordinates(rawCoordinates);
+      initializeMap();
     } catch (error) {
-        console.error('Error fetching farm zone data:', error);
+      console.error('Error fetching farm zone data:', error);
     }
-};
-
-// Helper function to convert coordinates from [longitude, latitude] to [latitude, longitude]
-const convertCoordinates = (coords) => {
-    // Flatten the coordinates and convert each pair
+  };
+  
+  const convertCoordinates = (coords) => {
     return coords[0].map(coord => [coord[1], coord[0]]);
-};
-
-const initializeMap = () => {
+  };
+  
+  const initializeMap = () => {
     if (map.value) {
-        // Clear the existing map if any
-        map.value.remove();
+      map.value.remove();
     }
-
+  
     map.value = L.map('map', {
-        center: [30.427755, -9.598107],
-        zoom: 11,
-        zoomControl: false, // Disable zoom controls
-        scrollWheelZoom: true, // Disable zooming with the scroll wheel
-        doubleClickZoom: false, // Disable zooming with double click
-        touchZoom: false, // Disable touch zooming on mobile devices
-        dragging: false // Optionally disable dragging to prevent panning
+      center: [30.427755, -9.598107],
+      zoom: 11,
+      zoomControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      dragging: false
     });
-
-    if (!L.gridLayer.googleMutant) {
-        console.error('GoogleMutant plugin not loaded');
-        return;
-    }
-
+  
     L.gridLayer.googleMutant({
-        type: 'hybrid',
-        maxZoom: 18,
-        key: googleMapsKey
+      type: 'hybrid',
+      maxZoom: 18,
+      key: googleMapsKey
     }).addTo(map.value);
-
-    // Draw the polygon on the map if coordinates are available
+  
     if (coordinates.value && coordinates.value.length) {
-        const polygon = L.polygon(coordinates.value, { color: 'red' }).addTo(map.value);
-
-        // Fit the map view to the polygon bounds
-        map.value.fitBounds(polygon.getBounds());
-    } else {
-        console.error('No coordinates available to draw on the map.');
+      const polygon = L.polygon(coordinates.value, { color: 'red', fillOpacity: 0 , weight: 3}).addTo(map.value);
+      map.value.fitBounds(polygon.getBounds());
     }
-};
-
-onMounted(() => {
-    const farmId = getFarmIdFromUrl();
-    if (farmId) {
-        fetchFarmZoneData(farmId);
+  };
+  
+  // Show NDVI Layer Button Handler
+  const showNDVILayer = async () => {
+    try {
+      const response = await axios.get(`/api/farm-zone/${farmId.value}/ndvi`);
+      const ndviTileUrl = response.data.tileUrl;
+  
+      if (ndviLayer.value) {
+        map.value.removeLayer(ndviLayer.value);
+      }
+  
+      // Add NDVI layer to the map
+      ndviLayer.value = L.tileLayer(ndviTileUrl, {
+        opacity: 0.6,
+        attribution: 'NDVI Layer'
+      }).addTo(map.value);
+    } catch (error) {
+      console.error('Error fetching NDVI layer:', error);
     }
-});
-</script>
-
-<style scoped>
-.leaflet-container {
+  };
+  
+  onMounted(() => {
+    farmId.value = getFarmIdFromUrl();
+    if (farmId.value) {
+      fetchFarmZoneData(farmId.value);
+    }
+  });
+  </script>
+  
+  <style scoped>
+  .leaflet-container {
     height: 100%;
     width: 100%;
     z-index: 10;
-}
-</style>
+  }
+  </style>
+  
