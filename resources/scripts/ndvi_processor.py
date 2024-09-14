@@ -7,25 +7,35 @@ ee.Authenticate()
 ee.Initialize(project='ee-ventador')
 
 def calculate_ndvi(geojson_polygon):
-    # Load Sentinel-2 data
+    # Load Sentinel-2 data with cloud masking
+    def cloud_mask(image):
+        # Define cloud masking function
+        cloud_mask = image.select(['QA60']).bitwiseAnd(1 << 10).eq(0)
+        return image.updateMask(cloud_mask)
+
     sentinel2 = ee.ImageCollection('COPERNICUS/S2')\
         .filterDate('2023-01-01', '2023-01-31')\
         .filterBounds(ee.Geometry.Polygon(geojson_polygon))\
-        .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))\
+        .map(cloud_mask)\
+        .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))\
         .median()
 
     # Calculate NDVI
     ndvi = sentinel2.normalizedDifference(['B8', 'B4']).rename('NDVI')
 
+    # Mask NDVI to the polygon
+    polygon_geom = ee.Geometry.Polygon(geojson_polygon)
+    ndvi_masked = ndvi.clip(polygon_geom)
+
     # Define visualization parameters for NDVI
     ndvi_params = {
-        'min': -1,
-        'max': 1,
-        'palette': ['blue', 'white', 'green']
+        'min': -0.2,
+        'max': 0.8,  # Adjusted max value for better visualization
+        'palette': ['blue', 'cyan', 'green', 'yellow', 'red']  # Enhanced color palette
     }
 
     # Get a URL for the NDVI tile layer
-    ndvi_map_id = ee.Image(ndvi).getMapId(ndvi_params)
+    ndvi_map_id = ee.Image(ndvi_masked).getMapId(ndvi_params)
 
     # Return the tile URL for NDVI visualization
     return ndvi_map_id['tile_fetcher'].url_format
