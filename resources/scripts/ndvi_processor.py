@@ -1,20 +1,26 @@
 import ee
 import json
 import sys
+import datetime
 
 # Authenticate and initialize Earth Engine
 ee.Authenticate()
 ee.Initialize(project='ee-ventador')
 
+# Get the current date and calculate the start date (e.g., 1 month ago)
+end_date = datetime.date.today().isoformat()
+start_date = (datetime.date.today() - datetime.timedelta(days=30)).isoformat()
+
 def calculate_ndvi(geojson_polygon):
     # Load Sentinel-2 data with cloud masking
     def cloud_mask(image):
-        # Define cloud masking function
-        cloud_mask = image.select(['QA60']).bitwiseAnd(1 << 10).eq(0)
-        return image.updateMask(cloud_mask)
+        # Mask both opaque and cirrus clouds
+        opaque_clouds = image.select(['MSK_CLASSI_OPAQUE']).lt(1)
+        cirrus_clouds = image.select(['MSK_CLASSI_CIRRUS']).lt(1)
+        return image.updateMask(opaque_clouds).updateMask(cirrus_clouds)
 
     sentinel2 = ee.ImageCollection('COPERNICUS/S2')\
-        .filterDate('2023-01-01', '2023-01-31')\
+        .filterDate(start_date, end_date)\
         .filterBounds(ee.Geometry.Polygon(geojson_polygon))\
         .map(cloud_mask)\
         .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))\
@@ -31,7 +37,7 @@ def calculate_ndvi(geojson_polygon):
     ndvi_params = {
         'min': -0.2,
         'max': 0.8,  # Adjusted max value for better visualization
-        'palette': ['blue', 'cyan', 'green', 'yellow', 'red']  # Enhanced color palette
+        'palette': ['blue', 'cyan', 'green', 'yellow', 'red'] # Enhanced color palette
     }
 
     # Get a URL for the NDVI tile layer
