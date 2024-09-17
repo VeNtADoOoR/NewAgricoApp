@@ -111,4 +111,56 @@ class FarmZoneController extends Controller
         return response()->json(['tileUrl' => $result['tile_url']]);
     }
 
+    public function calculateEVI($id)
+    {
+        // Retrieve farm zone from the database
+        $farmZone = FarmZone::find($id);
+        if (!$farmZone) {
+            return response()->json(['error' => 'Farm zone not found'], 404);
+        }
+
+        // Convert farm zone coordinates to GeoJSON format
+        $coordinates = json_encode($farmZone->coordinates);
+
+        // Execute Python script to calculate NDVI using GEE
+        $pythonScript = base_path('/resources/scripts/evi_processor.py');
+        $command = "python $pythonScript $coordinates";
+        $output = shell_exec($command);
+        $result = json_decode($output, true);
+
+        // Check for error in Python script execution
+        if (!isset($result['tile_url'])) {
+            return response()->json(['error' => 'EVI calculation failed'], 500);
+        }
+
+        // Return the NDVI tile URL to the frontend
+        return response()->json(['tileUrl' => $result['tile_url']]);
+    }
+
+    public function calculateNDWI($id)
+    {
+        // Retrieve farm zone from the database
+        $farmZone = FarmZone::find($id);
+        if (!$farmZone) {
+            return response()->json(['error' => 'Farm zone not found'], 404);
+        }
+
+        // Convert farm zone coordinates to GeoJSON format
+        $coordinates = json_encode($farmZone->coordinates);
+
+        // Execute Python script to calculate NDVI using GEE
+        $pythonScript = base_path('/resources/scripts/ndwi_processor.py');
+        $command = "python $pythonScript $coordinates";
+        $output = shell_exec($command);
+        $result = json_decode($output, true);
+
+        // Check for error in Python script execution
+        if (!isset($result['tile_url'])) {
+            return response()->json(['error' => 'NDWI calculation failed'], 500);
+        }
+
+        // Return the NDVI tile URL to the frontend
+        return response()->json(['tileUrl' => $result['tile_url']]);
+    }
+
 }

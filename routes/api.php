@@ -14,6 +14,8 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/farm-zone/{id}', [FarmZoneController::class, 'show']);
     Route::get('/farm-zone/{id}/coordinates', [FarmZoneController::class, 'getFarmZoneCoordinates']);
     Route::get('/farm-zone/{id}/ndvi', [FarmZoneController::class, 'calculateNDVI']);
+    Route::get('/farm-zone/{id}/evi', [FarmZoneController::class, 'calculateEVI']);
+    Route::get('/farm-zone/{id}/ndwi', [FarmZoneController::class, 'calculateNDWI']);
 });
 
 
