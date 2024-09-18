@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto bg-green-100" style="width: 100%;">
-    <AuthNavBar/>
+    <AuthNavBar />
     <div class="flex flex-nowrap justify-between items-start py-4">
       <div class="flex flex-col ml-4">
         <button class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mb-2"
@@ -21,9 +21,12 @@
             class="spinner-border animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full"></span>
           <span v-if="!NdwiLoading">Show NDWI Layer</span>
         </button>
-        <button class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mb-2">
-          Compare
-        </button>
+        <a :href="`/farm-compare/${farmId}`"
+        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 my-2 text-center">
+          <button >
+            Compare
+          </button>
+        </a>
       </div>
 
       <div class="w-1/2 mr-4">
@@ -275,9 +278,11 @@ onMounted(() => {
 #ndvi {
   font-size: 12px;
 }
+
 #evi {
   font-size: 12px;
 }
+
 #ndwi {
   font-size: 12px;
 }

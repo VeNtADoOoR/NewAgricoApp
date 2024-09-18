@@ -67,6 +67,12 @@ class FarmZoneController extends Controller
         return Inertia::render('FarmView', ['farm' => $farm]);
     }
 
+    public function compareFarm($id)
+    {
+        $farm = FarmZone::findOrFail($id);
+        return Inertia::render('FarmCompare', ['farm' => $farm]);
+    }
+
     public function show($id)
     {
         // Fetch the farm zone by ID
