@@ -21,13 +21,15 @@ class FarmZoneController extends Controller
 
         $validatedData = $request->validate([
             'coordinates' => 'required|array',
-            'farm_name' => 'required|string|max:255' // Validate farm_name
+            'farm_name' => 'required|string|max:255', // Validate farm_name
+            'farm_area' => 'required|numeric',
         ]);
 
         $farmZone = FarmZone::create([
             'user_id' => $user->id, // Associate the zone with the authenticated user
             'coordinates' => $validatedData['coordinates'],
-            'farm_name' => $validatedData['farm_name'] // Save farm_name
+            'farm_name' => $validatedData['farm_name'], // Save farm_name
+            'farm_area' => $validatedData['farm_area'],
         ]);
 
         return response()->json(['success' => true, 'farmZone' => $farmZone]);

@@ -19,6 +19,7 @@
         "vue": "^3.3.13"
     },
     "dependencies": {
+        "@turf/turf": "^7.1.0",
         "@vue-leaflet/vue-leaflet": "^0.10.1",
         "leaflet": "^1.9.4",
         "leaflet-draw": "^1.0.4",

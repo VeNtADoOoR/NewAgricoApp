@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('farm_name');
             $table->unsignedBigInteger('user_id');
             $table->json('coordinates'); // Store the polygon coordinates as JSON
+            $table->decimal('farm_area', 8, 2)->nullable();
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });

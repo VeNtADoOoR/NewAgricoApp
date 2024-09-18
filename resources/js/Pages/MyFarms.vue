@@ -35,7 +35,6 @@ const deleteFarmZone = async () => {
   if (farmToDelete.value) {
     try {
       await axios.delete(`/api/farm-zone/${farmToDelete.value.id}`);
-      alert('Farm zone deleted successfully!');
       await fetchFarms(); // Refresh the farms list
       showDeleteModal.value = false;
     } catch (error) {
@@ -80,12 +79,14 @@ const cancelUpdate = () => {
             <thead class="bg-green-700">
               <tr>
                 <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Farm Name</th>
+                <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Surface(ha)</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr v-for="farm in farms" :key="farm.id">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ farm.farm_name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ farm.farm_area }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <a :href="`/farm-view/${farm.id}`">
                     <button

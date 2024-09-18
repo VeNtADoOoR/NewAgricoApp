@@ -1,5 +1,6 @@
 <template>
   <div class="container mx-auto bg-green-100" style="width: 100%;">
+    <AuthNavBar/>
     <div class="flex flex-nowrap justify-between items-start py-4">
       <div class="flex flex-col ml-4">
         <button class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mb-2"
@@ -20,6 +21,9 @@
             class="spinner-border animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full"></span>
           <span v-if="!NdwiLoading">Show NDWI Layer</span>
         </button>
+        <button class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mb-2">
+          Compare
+        </button>
       </div>
 
       <div class="w-1/2 mr-4">
@@ -36,58 +40,45 @@
           <!-- NDVI Legend -->
           <div v-if="ndviLayerVisible">
             <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-blue-500 inline-block"></span>
-              <span class="ml-2">Low</span>
+              <!-- Gradient Bar for NDVI -->
+              <div class="w-full h-4" style="background: linear-gradient(to right, blue, cyan, green, yellow, red);">
+              </div>
             </div>
-            <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-cyan-500 inline-block"></span>
-              <span class="ml-2">Moderate</span>
-            </div>
-            <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-green-500 inline-block"></span>
-              <span class="ml-2">Healthy</span>
-            </div>
-            <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-yellow-500 inline-block"></span>
-              <span class="ml-2">Very Healthy</span>
-            </div>
-            <div class="flex items-center">
-              <span class="w-6 h-6 bg-red-500 inline-block"></span>
-              <span class="ml-2">Extremely Healthy</span>
+            <div class="flex justify-between mt-1" id="ndvi">
+              <span>Low</span>
+              <span>Moderate</span>
+              <span>Healthy</span>
+              <span>Very Healthy</span>
+              <span>Extremely Healthy</span>
             </div>
           </div>
 
           <!-- EVI Legend -->
           <div v-if="eviLayerVisible">
             <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-blue-500 inline-block"></span>
-              <span class="ml-2">Low Vegetation</span>
+              <!-- Gradient Bar for EVI -->
+              <div class="w-full h-4" style="background: linear-gradient(to right, blue, white, green);"></div>
             </div>
-            <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-white inline-block"></span>
-              <span class="ml-2">Moderate Vegetation</span>
-            </div>
-            <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-green-500 inline-block"></span>
-              <span class="ml-2">High Vegetation</span>
+            <div class="flex justify-between mt-1" id="evi">
+              <span>Low Vegetation</span>
+              <span>Moderate Vegetation</span>
+              <span>High Vegetation</span>
             </div>
           </div>
 
           <!-- NDWI Legend -->
           <div v-if="ndwiLayerVisible">
             <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-orange-900 inline-block"></span>
-              <span class="ml-2">Low Water</span>
+              <!-- Gradient Bar for NDWI -->
+              <div class="w-full h-4" style="background: linear-gradient(to right, brown, white, blue);"></div>
             </div>
-            <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-white inline-block"></span>
-              <span class="ml-2">Moderate Water</span>
-            </div>
-            <div class="flex items-center mb-2">
-              <span class="w-6 h-6 bg-blue-500 inline-block"></span>
-              <span class="ml-2">High Water</span>
+            <div class="flex justify-between mt-1" id="ndwi">
+              <span>Low</span>
+              <span>Medium</span>
+              <span>High</span>
             </div>
           </div>
+
         </div>
       </div>
     </div>
@@ -101,6 +92,7 @@ import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.gridlayer.googlemutant';
+import AuthNavBar from '@/Components/AuthNavBar.vue';
 
 const googleMapsKey = ''; // Your Google Maps API key
 const map = ref(null);
@@ -278,5 +270,15 @@ onMounted(() => {
 .spinner-border {
   border-width: 0.2em;
   border-color: rgba(0, 0, 0, 0.1);
+}
+
+#ndvi {
+  font-size: 12px;
+}
+#evi {
+  font-size: 12px;
+}
+#ndwi {
+  font-size: 12px;
 }
 </style>
