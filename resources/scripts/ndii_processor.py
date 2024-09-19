@@ -11,7 +11,7 @@ ee.Initialize(project='ee-ventador')
 end_date = datetime.date.today().isoformat()
 start_date = (datetime.date.today() - datetime.timedelta(days=30)).isoformat()
 
-def calculate_ndwi(geojson_polygon):
+def calculate_ndii(geojson_polygon):
     # Load Sentinel-2 data with cloud masking
     def cloud_mask(image):
         # Mask both opaque and cirrus clouds
@@ -26,36 +26,35 @@ def calculate_ndwi(geojson_polygon):
         .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))\
         .median()
 
-    # Calculate NDWI using the formula:
-    # NDWI = (GREEN - NIR) / (GREEN + NIR)
-    GREEN = sentinel2.select('B3')  # Green band
+    # Select NIR and SWIR bands for NDII calculation
     NIR = sentinel2.select('B8')    # Near-infrared band
+    SWIR = sentinel2.select('B11')  # Shortwave-infrared band
     
-    # Apply NDWI formula
-    ndwi = sentinel2.expression(
-        '(GREEN - NIR) / (GREEN + NIR)',
+    # Apply NDII formula: (NIR - SWIR) / (NIR + SWIR)
+    ndii = sentinel2.expression(
+        '(NIR - SWIR) / (NIR + SWIR)',
         {
-            'GREEN': GREEN,
-            'NIR': NIR
+            'NIR': NIR,
+            'SWIR': SWIR
         }
-    ).rename('NDWI')
+    ).rename('NDII')
 
-    # Mask NDWI to the polygon
+    # Mask NDII to the polygon
     polygon_geom = ee.Geometry.Polygon(geojson_polygon)
-    ndwi_masked = ndwi.clip(polygon_geom)
+    ndii_masked = ndii.clip(polygon_geom)
 
-    # Define visualization parameters for NDWI
-    ndwi_params = {
-        'min': -0.5,
-        'max': 0.5,
-        'palette': ['brown', 'white', 'blue']
+    # Define visualization parameters for NDII
+    ndii_params = {
+        'min': -1,
+        'max': 1,
+        'palette': ['brown', 'white', 'green']
     }
 
-    # Get a URL for the NDWI tile layer
-    ndwi_map_id = ee.Image(ndwi_masked).getMapId(ndwi_params)
+    # Get a URL for the NDII tile layer
+    ndii_map_id = ee.Image(ndii_masked).getMapId(ndii_params)
 
-    # Return the tile URL for NDWI visualization
-    return ndwi_map_id['tile_fetcher'].url_format
+    # Return the tile URL for NDII visualization
+    return ndii_map_id['tile_fetcher'].url_format
 
 if __name__ == "__main__":
     # Get coordinates from command-line arguments
@@ -65,8 +64,8 @@ if __name__ == "__main__":
 
     try:
         geojson_polygon = json.loads(sys.argv[1])
-        # Calculate NDWI and print the result
-        tile_url = calculate_ndwi(geojson_polygon)
+        # Calculate NDII and print the result
+        tile_url = calculate_ndii(geojson_polygon)
         print(json.dumps({"tile_url": tile_url}))
     except Exception as e:
         print(json.dumps({"error": str(e)}))

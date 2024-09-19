@@ -145,7 +145,7 @@ class FarmZoneController extends Controller
         return response()->json(['tileUrl' => $result['tile_url']]);
     }
 
-    public function calculateNDWI($id)
+    public function calculateNDII($id)
     {
         // Retrieve farm zone from the database
         $farmZone = FarmZone::find($id);
@@ -157,18 +157,139 @@ class FarmZoneController extends Controller
         $coordinates = json_encode($farmZone->coordinates);
 
         // Execute Python script to calculate NDVI using GEE
-        $pythonScript = base_path('/resources/scripts/ndwi_processor.py');
+        $pythonScript = base_path('/resources/scripts/ndii_processor.py');
         $command = "python $pythonScript $coordinates";
         $output = shell_exec($command);
         $result = json_decode($output, true);
 
         // Check for error in Python script execution
         if (!isset($result['tile_url'])) {
-            return response()->json(['error' => 'NDWI calculation failed'], 500);
+            return response()->json(['error' => 'NDII calculation failed'], 500);
         }
 
         // Return the NDVI tile URL to the frontend
         return response()->json(['tileUrl' => $result['tile_url']]);
     }
+
+    public function compareNDII(Request $request, $id)
+    {
+        // Validate incoming request for date fields
+        $request->validate([
+            'date1' => 'required|date',
+            'date2' => 'required|date',
+        ]);
+
+        // Retrieve farm zone from the database
+        $farmZone = FarmZone::find($id);
+        if (!$farmZone) {
+            return response()->json(['error' => 'Farm zone not found'], 404);
+        }
+
+        // Convert farm zone coordinates to GeoJSON format
+        $coordinates = json_encode($farmZone->coordinates);
+
+        // Get the selected dates
+        $date1 = $request->input('date1');
+        $date2 = $request->input('date2');
+
+        // Execute Python script to calculate NDII using GEE
+        $pythonScript = base_path('/resources/scripts/ndii_comparison.py');
+        $command = "python $pythonScript $coordinates $date1 $date2";
+        $output = shell_exec($command);
+
+        $result = json_decode($output, true);
+
+        // Check for error in Python script execution
+        if (!isset($result['tile_url_date1']) || !isset($result['tile_url_date2'])) {
+            return response()->json(['error' => 'NDII comparison failed'], 500);
+        }
+
+        // Return both NDII tile URLs to the frontend
+        return response()->json([
+            'tileUrlDate1' => $result['tile_url_date1'],
+            'tileUrlDate2' => $result['tile_url_date2']
+        ]);
+    }
+
+    public function compareNDVI(Request $request, $id)
+    {
+        // Validate incoming request for date fields
+        $request->validate([
+            'date1' => 'required|date',
+            'date2' => 'required|date',
+        ]);
+
+        // Retrieve farm zone from the database
+        $farmZone = FarmZone::find($id);
+        if (!$farmZone) {
+            return response()->json(['error' => 'Farm zone not found'], 404);
+        }
+
+        // Convert farm zone coordinates to GeoJSON format
+        $coordinates = json_encode($farmZone->coordinates);
+
+        // Get the selected dates
+        $date1 = $request->input('date1');
+        $date2 = $request->input('date2');
+
+        // Execute Python script to calculate NDII using GEE
+        $pythonScript = base_path('/resources/scripts/ndvi_comparison.py');
+        $command = "python $pythonScript $coordinates $date1 $date2";
+        $output = shell_exec($command);
+
+        $result = json_decode($output, true);
+
+        // Check for error in Python script execution
+        if (!isset($result['tile_url_date1']) || !isset($result['tile_url_date2'])) {
+            return response()->json(['error' => 'NDVI comparison failed'], 500);
+        }
+
+        // Return both NDII tile URLs to the frontend
+        return response()->json([
+            'tileUrlDate1' => $result['tile_url_date1'],
+            'tileUrlDate2' => $result['tile_url_date2']
+        ]);
+    }
+
+    public function compareEVI(Request $request, $id)
+    {
+        // Validate incoming request for date fields
+        $request->validate([
+            'date1' => 'required|date',
+            'date2' => 'required|date',
+        ]);
+
+        // Retrieve farm zone from the database
+        $farmZone = FarmZone::find($id);
+        if (!$farmZone) {
+            return response()->json(['error' => 'Farm zone not found'], 404);
+        }
+
+        // Convert farm zone coordinates to GeoJSON format
+        $coordinates = json_encode($farmZone->coordinates);
+
+        // Get the selected dates
+        $date1 = $request->input('date1');
+        $date2 = $request->input('date2');
+
+        // Execute Python script to calculate NDII using GEE
+        $pythonScript = base_path('/resources/scripts/evi_comparison.py');
+        $command = "python $pythonScript $coordinates $date1 $date2";
+        $output = shell_exec($command);
+
+        $result = json_decode($output, true);
+
+        // Check for error in Python script execution
+        if (!isset($result['tile_url_date1']) || !isset($result['tile_url_date2'])) {
+            return response()->json(['error' => 'EVI comparison failed'], 500);
+        }
+
+        // Return both NDII tile URLs to the frontend
+        return response()->json([
+            'tileUrlDate1' => $result['tile_url_date1'],
+            'tileUrlDate2' => $result['tile_url_date2']
+        ]);
+    }
+
 
 }

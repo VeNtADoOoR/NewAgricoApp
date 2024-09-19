@@ -16,14 +16,14 @@
           <span v-if="!EviLoading">Show EVI Layer</span>
         </button>
         <button class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 my-2"
-          @click="showNDWILayer" :disabled="NdwiLoading">
-          <span v-if="NdwiLoading"
+          @click="showNDIILayer" :disabled="NdiiLoading">
+          <span v-if="NdiiLoading"
             class="spinner-border animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full"></span>
-          <span v-if="!NdwiLoading">Show NDWI Layer</span>
+          <span v-if="!NdiiLoading">Show NDII Layer</span>
         </button>
         <a :href="`/farm-compare/${farmId}`"
-        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 my-2 text-center">
-          <button >
+          class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 my-2 text-center">
+          <button>
             Compare
           </button>
         </a>
@@ -35,10 +35,10 @@
 
       <!-- Legend Container -->
       <div class="flex-shrink-0 w-1/4">
-        <div class="bg-white p-4 rounded shadow-lg" v-if="ndviLayerVisible || eviLayerVisible || ndwiLayerVisible">
+        <div class="bg-white p-4 rounded shadow-lg" v-if="ndviLayerVisible || eviLayerVisible || ndiiLayerVisible">
           <h3 class="font-bold mb-2" v-if="ndviLayerVisible">NDVI Legend</h3>
           <h3 class="font-bold mb-2" v-if="eviLayerVisible">EVI Legend</h3>
-          <h3 class="font-bold mb-2" v-if="ndwiLayerVisible">NDWI Legend</h3>
+          <h3 class="font-bold mb-2" v-if="ndiiLayerVisible">NDII Legend</h3>
 
           <!-- NDVI Legend -->
           <div v-if="ndviLayerVisible">
@@ -69,18 +69,19 @@
             </div>
           </div>
 
-          <!-- NDWI Legend -->
-          <div v-if="ndwiLayerVisible">
+          <!-- NDII Legend -->
+          <div v-if="ndiiLayerVisible">
             <div class="flex items-center mb-2">
-              <!-- Gradient Bar for NDWI -->
-              <div class="w-full h-4" style="background: linear-gradient(to right, brown, white, blue);"></div>
+              <!-- Gradient Bar for NDII -->
+              <div class="w-full h-4" style="background: linear-gradient(to right, brown, white, green);"></div>
             </div>
-            <div class="flex justify-between mt-1" id="ndwi">
-              <span>Low</span>
-              <span>Medium</span>
-              <span>High</span>
+            <div class="flex justify-between mt-1" id="ndii">
+              <span>Dry</span>
+              <span>Moderate</span>
+              <span>Wet</span>
             </div>
           </div>
+
 
         </div>
       </div>
@@ -103,13 +104,13 @@ const coordinates = ref([]);
 const farmId = ref(null); // Ref to store the farm ID
 const ndviLayer = ref(null); // Store NDVI layer reference
 const eviLayer = ref(null); // Store EVI layer reference
-const ndwiLayer = ref(null); // Store NDWI layer reference
+const ndiiLayer = ref(null); // Store NDII layer reference
 const ndviLayerVisible = ref(false); // Track if NDVI layer is visible
 const eviLayerVisible = ref(false);
-const ndwiLayerVisible = ref(false); // Track if NDWI layer is visible
+const ndiiLayerVisible = ref(false); // Track if NDII layer is visible
 const NdviLoading = ref(false); // Track NDVI loading state
 const EviLoading = ref(false); // Track EVI loading state
-const NdwiLoading = ref(false); // Track NDWI loading state
+const NdiiLoading = ref(false); // Track NDII loading state
 
 const getFarmIdFromUrl = () => {
   const url = new URL(window.location.href);
@@ -175,9 +176,9 @@ const showNDVILayer = async () => {
       map.value.removeLayer(eviLayer.value);
       eviLayerVisible.value = false; // Hide EVI layer legend
     }
-    if (ndwiLayer.value) {
-      map.value.removeLayer(ndwiLayer.value);
-      ndwiLayerVisible.value = false; // Hide NDWI layer legend
+    if (ndiiLayer.value) {
+      map.value.removeLayer(ndiiLayer.value);
+      ndiiLayerVisible.value = false; // Hide NDII layer legend
     }
 
     // Add NDVI layer to the map
@@ -209,9 +210,9 @@ const showEVILayer = async () => {
     if (eviLayer.value) {
       map.value.removeLayer(eviLayer.value);
     }
-    if (ndwiLayer.value) {
-      map.value.removeLayer(ndwiLayer.value);
-      ndwiLayerVisible.value = false; // Hide NDWI layer legend
+    if (ndiiLayer.value) {
+      map.value.removeLayer(ndiiLayer.value);
+      ndiiLayerVisible.value = false; // Hide NDII layer legend
     }
 
     // Add EVI layer to the map
@@ -228,37 +229,37 @@ const showEVILayer = async () => {
   }
 };
 
-// Show NDWI Layer Button Handler
-const showNDWILayer = async () => {
-  NdwiLoading.value = true; // Start loading
+// Show NDII Layer Button Handler
+const showNDIILayer = async () => {
+  NdiiLoading.value = true; // Start loading
   try {
-    const response = await axios.get(`/api/farm-zone/${farmId.value}/ndwi`);
-    const ndwiTileUrl = response.data.tileUrl;
+    const response = await axios.get(`/api/farm-zone/${farmId.value}/ndii`);
+    const ndiiTileUrl = response.data.tileUrl;
 
     // Remove existing layers if any
-    if (ndviLayer.value) {
-      map.value.removeLayer(ndviLayer.value);
+    if (ndiiLayer.value) {
+      map.value.removeLayer(ndiiLayer.value);
       ndviLayerVisible.value = false; // Hide NDVI layer legend
     }
     if (eviLayer.value) {
       map.value.removeLayer(eviLayer.value);
       eviLayerVisible.value = false; // Hide EVI layer legend
     }
-    if (ndwiLayer.value) {
-      map.value.removeLayer(ndwiLayer.value);
+    if (ndiiLayer.value) {
+      map.value.removeLayer(ndiiLayer.value);
     }
 
-    // Add NDWI layer to the map
-    ndwiLayer.value = L.tileLayer(ndwiTileUrl, {
+    // Add NDII layer to the map
+    ndiiLayer.value = L.tileLayer(ndiiTileUrl, {
       opacity: 0.8,
-      attribution: 'NDWI Layer'
+      attribution: 'NDII Layer'
     }).addTo(map.value);
 
-    ndwiLayerVisible.value = true; // Show NDWI layer legend
+    ndiiLayerVisible.value = true; // Show NDII layer legend
   } catch (error) {
-    console.error('Error fetching NDWI layer:', error);
+    console.error('Error fetching NDII layer:', error);
   } finally {
-    NdwiLoading.value = false; // End loading
+    NdiiLoading.value = false; // End loading
   }
 };
 
@@ -283,7 +284,7 @@ onMounted(() => {
   font-size: 12px;
 }
 
-#ndwi {
+#ndii {
   font-size: 12px;
 }
 </style>

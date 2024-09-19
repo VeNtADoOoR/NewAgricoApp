@@ -1,52 +1,33 @@
 <template>
     <div class="container mx-auto bg-green-100" style="width: 100%;">
         <AuthNavBar />
-        <div class="flex flex-nowrap justify-between items-start py-4">
-            <!-- First Map -->
-            <div class="w-1/2 mr-4">
-                <div id="map1" class="leaflet-container" style="height: 600px; border: 1rem solid green;"></div>
-
-                <div class="flex flex-row">
-                    <!-- the first calendar -->
-                    <div
-                        class="flex flex-row sm:flex-row items-start sm:items-center mt-5 space-y-3 sm:space-y-0 sm:space-x-3 mr-3">
-                        <input type="date" id="date" v-model="selectedDate"
-                            class="p-3 w-full sm:w-auto border border-gray-300 rounded-md shadow-md focus:outline-none
-                         focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out hover:shadow-lg" />
-                    </div>
-                    <button
-                        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">
-                        NDVI</button>
-                    <button
-                        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">
-                        EVI</button>
-                    <button
-                        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">
-                        NDWI</button>
+        <div class="flex flex-col">
+            <div class="flex flex-nowrap justify-between items-start py-4">
+                <!-- First Map -->
+                <div class="w-1/2 mr-4">
+                    <div id="map1" class="leaflet-container" style="height: 600px; border: 1rem solid green;"></div>
                 </div>
-
+                <!-- Second Map -->
+                <div class="w-1/2">
+                    <div id="map2" class="leaflet-container" style="height: 600px; border: 1rem solid green;"></div>
+                </div>
             </div>
-
-            <!-- Second Map -->
-            <div class="w-1/2">
-                <div id="map2" class="leaflet-container" style="height: 600px; border: 1rem solid green;"></div>
-                <div class="flex flex-row">
-                    <!-- the first calendar -->
-                    <div
-                        class="flex flex-row sm:flex-row items-start sm:items-center mt-5 space-y-3 sm:space-y-0 sm:space-x-3 mr-3">
-                        <input type="date" id="date" v-model="selectedDate"
-                            class="p-3 w-full sm:w-auto border border-gray-300 rounded-md shadow-md focus:outline-none
-                         focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out hover:shadow-lg" />
-                    </div>
-                    <button
-                        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">
-                        NDVI</button>
-                    <button
-                        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">
-                        EVI</button>
-                    <button
-                        class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">
-                        NDWI</button>
+            <div class="flex flex-row justify-center mb-2">
+                <div class="flex flex-row items-start mt-5 space-y-3 sm:space-y-0 sm:space-x-3 mr-3">
+                    <input type="date" id="date1" v-model="selectedDate1"
+                        class="p-3 w-full sm:w-auto border border-gray-300 rounded-md shadow-md focus:outline-none
+                        focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out hover:shadow-lg" />
+                </div>
+                <button @click="fetchNDVI"
+                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">NDVI</button>
+                <button @click="fetchEVI"
+                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">EVI</button>
+                <button @click="fetchNDII"
+                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">NDII</button>
+                <div class="flex flex-row items-start mt-5 space-y-3 sm:space-y-0 sm:space-x-3 mr-3">
+                    <input type="date" id="date2" v-model="selectedDate2"
+                        class="p-3 w-full sm:w-auto border border-gray-300 rounded-md shadow-md focus:outline-none
+                        focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out hover:shadow-lg" />
                 </div>
             </div>
         </div>
@@ -64,7 +45,16 @@ import AuthNavBar from '@/Components/AuthNavBar.vue';
 const googleMapsKey = ''; // Your Google Maps API key
 const coordinates = ref([]);
 const farmId = ref(null);
-const selectedDate = ref();
+const selectedDate1 = ref();
+const selectedDate2 = ref();
+const map1 = ref(null);
+const map2 = ref(null);
+const ndviLayer1 = ref(null);
+const ndviLayer2 = ref(null);
+const eviLayer1 = ref(null);
+const eviLayer2 = ref(null);
+const ndiiLayer1 = ref(null);
+const ndiiLayer2 = ref(null);
 
 const getFarmIdFromUrl = () => {
     const url = new URL(window.location.href);
@@ -90,7 +80,7 @@ const convertCoordinates = (coords) => {
 
 const initializeMaps = () => {
     // Initialize the first map
-    const map1 = L.map('map1', {
+    map1.value = L.map('map1', {
         center: [30.427755, -9.598107],
         zoom: 11,
         zoomControl: false,
@@ -104,15 +94,15 @@ const initializeMaps = () => {
         type: 'satellite',
         maxZoom: 18,
         key: googleMapsKey
-    }).addTo(map1);
+    }).addTo(map1.value);
 
     if (coordinates.value && coordinates.value.length) {
-        const polygon1 = L.polygon(coordinates.value, { color: 'red', fillOpacity: 0, weight: 3 }).addTo(map1);
-        map1.fitBounds(polygon1.getBounds());
+        const polygon1 = L.polygon(coordinates.value, { color: 'red', fillOpacity: 0, weight: 3 }).addTo(map1.value);
+        map1.value.fitBounds(polygon1.getBounds());
     }
 
     // Initialize the second map
-    const map2 = L.map('map2', {
+    map2.value = L.map('map2', {
         center: [30.427755, -9.598107],
         zoom: 11,
         zoomControl: false,
@@ -126,13 +116,101 @@ const initializeMaps = () => {
         type: 'satellite',
         maxZoom: 18,
         key: googleMapsKey
-    }).addTo(map2);
+    }).addTo(map2.value);
 
     if (coordinates.value && coordinates.value.length) {
-        const polygon2 = L.polygon(coordinates.value, { color: 'red', fillOpacity: 0, weight: 3 }).addTo(map2);
-        map2.fitBounds(polygon2.getBounds());
+        const polygon2 = L.polygon(coordinates.value, { color: 'red', fillOpacity: 0, weight: 3 }).addTo(map2.value);
+        map2.value.fitBounds(polygon2.getBounds());
     }
 };
+
+const fetchNDVI = async () => {
+    if (selectedDate1.value && selectedDate2.value) {
+        try {
+            const response = await axios.get(`/api/farm-zone/${farmId.value}/ndvi-comparison`, {
+                params: {
+                    date1: selectedDate1.value,
+                    date2: selectedDate2.value,
+                }
+            });
+            const { tileUrlDate1, tileUrlDate2 } = response.data;
+
+            if (ndviLayer1.value) {
+                map1.value.removeLayer(ndviLayer1.value);
+            }
+            ndviLayer1.value = L.tileLayer(tileUrlDate1, { opacity: 0.8, attribution: 'NDVI Layer for Date 1' }).addTo(map1.value);
+
+            if (ndviLayer2.value) {
+                map2.value.removeLayer(ndviLayer2.value);
+            }
+            ndviLayer2.value = L.tileLayer(tileUrlDate2, { opacity: 0.8, attribution: 'NDVI Layer for Date 2' }).addTo(map2.value);
+
+        } catch (error) {
+            console.error('Error fetching NDVI data:', error);
+        }
+    } else {
+        alert('Please select both dates.');
+    }
+};
+
+const fetchEVI = async () => {
+    if (selectedDate1.value && selectedDate2.value) {
+        try {
+            const response = await axios.get(`/api/farm-zone/${farmId.value}/evi-comparison`, {
+                params: {
+                    date1: selectedDate1.value,
+                    date2: selectedDate2.value,
+                }
+            });
+            const { tileUrlDate1, tileUrlDate2 } = response.data;
+
+            if (eviLayer1.value) {
+                map1.value.removeLayer(eviLayer1.value);
+            }
+            eviLayer1.value = L.tileLayer(tileUrlDate1, { opacity: 0.8, attribution: 'EVI Layer for Date 1' }).addTo(map1.value);
+
+            if (eviLayer2.value) {
+                map2.value.removeLayer(eviLayer2.value);
+            }
+            eviLayer2.value = L.tileLayer(tileUrlDate2, { opacity: 0.8, attribution: 'EVI Layer for Date 2' }).addTo(map2.value);
+
+        } catch (error) {
+            console.error('Error fetching EVI data:', error);
+        }
+    } else {
+        alert('Please select both dates.');
+    }
+};
+
+const fetchNDII = async () => {
+    if (selectedDate1.value && selectedDate2.value) {
+        try {
+            const response = await axios.get(`/api/farm-zone/${farmId.value}/ndii-comparison`, {
+                params: {
+                    date1: selectedDate1.value,
+                    date2: selectedDate2.value,
+                }
+            });
+            const { tileUrlDate1, tileUrlDate2 } = response.data;
+
+            if (ndiiLayer1.value) {
+                map1.value.removeLayer(ndiiLayer1.value);
+            }
+            ndiiLayer1.value = L.tileLayer(tileUrlDate1, { opacity: 0.8, attribution: 'NDII Layer for Date 1' }).addTo(map1.value);
+
+            if (ndiiLayer2.value) {
+                map2.value.removeLayer(ndiiLayer2.value);
+            }
+            ndiiLayer2.value = L.tileLayer(tileUrlDate2, { opacity: 0.8, attribution: 'NDII Layer for Date 2' }).addTo(map2.value);
+
+        } catch (error) {
+            console.error('Error fetching NDII data:', error);
+        }
+    } else {
+        alert('Please select both dates.');
+    }
+};
+
 
 onMounted(() => {
     farmId.value = getFarmIdFromUrl();
