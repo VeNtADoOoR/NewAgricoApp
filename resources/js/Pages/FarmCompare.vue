@@ -18,12 +18,27 @@
                         class="p-3 w-full sm:w-auto border border-gray-300 rounded-md shadow-md focus:outline-none
                         focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out hover:shadow-lg" />
                 </div>
-                <button @click="fetchNDVI"
-                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">NDVI</button>
-                <button @click="fetchEVI"
-                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">EVI</button>
-                <button @click="fetchNDII"
-                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3">NDII</button>
+                <button
+                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3 w-20"
+                    @click="fetchNDVI" :disabled="NdviLoading">
+                    <span v-if="NdviLoading"
+                        class="spinner-border animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full"></span>
+                    <span v-if="!NdviLoading">NDVI</span>
+                </button>
+                <button
+                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3 w-20"
+                    @click="fetchEVI" :disabled="EviLoading">
+                    <span v-if="EviLoading"
+                        class="spinner-border animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full"></span>
+                    <span v-if="!EviLoading">EVI</span>
+                </button>
+                <button
+                    class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-500 transition duration-200 mt-5 mx-3 w-20"
+                    @click="fetchNDII" :disabled="NdiiLoading">
+                    <span v-if="NdiiLoading"
+                        class="spinner-border animate-spin inline-block w-4 h-4 border-2 border-t-transparent rounded-full"></span>
+                    <span v-if="!NdiiLoading">NDII</span>
+                </button>
                 <div class="flex flex-row items-start mt-5 space-y-3 sm:space-y-0 sm:space-x-3 mr-3">
                     <input type="date" id="date2" v-model="selectedDate2"
                         class="p-3 w-full sm:w-auto border border-gray-300 rounded-md shadow-md focus:outline-none
@@ -55,6 +70,9 @@ const eviLayer1 = ref(null);
 const eviLayer2 = ref(null);
 const ndiiLayer1 = ref(null);
 const ndiiLayer2 = ref(null);
+const NdviLoading = ref(false); // Track NDVI loading state
+const EviLoading = ref(false); // Track EVI loading state
+const NdiiLoading = ref(false); // Track NDII loading state
 
 const getFarmIdFromUrl = () => {
     const url = new URL(window.location.href);
@@ -132,6 +150,7 @@ const initializeMaps = () => {
 
 const fetchNDVI = async () => {
     if (selectedDate1.value && selectedDate2.value) {
+        NdviLoading.value = true;
         try {
             const response = await axios.get(`/api/farm-zone/${farmId.value}/ndvi-comparison`, {
                 params: {
@@ -156,13 +175,18 @@ const fetchNDVI = async () => {
         } catch (error) {
             console.error('Error fetching NDVI data:', error);
         }
+        finally {
+            NdviLoading.value = false; // End loading
+        }
     } else {
         alert('Please select both dates.');
     }
+
 };
 
 const fetchEVI = async () => {
     if (selectedDate1.value && selectedDate2.value) {
+        EviLoading.value = true;
         try {
             const response = await axios.get(`/api/farm-zone/${farmId.value}/evi-comparison`, {
                 params: {
@@ -185,6 +209,9 @@ const fetchEVI = async () => {
         } catch (error) {
             console.error('Error fetching EVI data:', error);
         }
+        finally {
+            EviLoading.value = false; // End loading
+        }
     } else {
         alert('Please select both dates.');
     }
@@ -192,6 +219,7 @@ const fetchEVI = async () => {
 
 const fetchNDII = async () => {
     if (selectedDate1.value && selectedDate2.value) {
+        NdiiLoading.value = true;
         try {
             const response = await axios.get(`/api/farm-zone/${farmId.value}/ndii-comparison`, {
                 params: {
@@ -213,6 +241,9 @@ const fetchNDII = async () => {
 
         } catch (error) {
             console.error('Error fetching NDII data:', error);
+        }
+        finally {
+            NdiiLoading.value = false; // End loading
         }
     } else {
         alert('Please select both dates.');

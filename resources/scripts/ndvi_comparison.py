@@ -52,7 +52,7 @@ def cloud_mask(image):
 def get_nearest_image(geojson_polygon, date):
     try:
         # Load Sentinel-2 data
-        collection = ee.ImageCollection('COPERNICUS/S2_SR')\
+        collection = ee.ImageCollection('COPERNICUS/S2')\
             .filterBounds(ee.Geometry.Polygon(geojson_polygon))\
             .filterDate(ee.Date(date).advance(-7, 'days'), date)\
             .map(cloud_mask)\
