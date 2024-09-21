@@ -61,6 +61,12 @@ const getFarmIdFromUrl = () => {
     return url.pathname.split('/').pop(); // Get the last part of the URL
 };
 
+const removeLayerIfExists = (map, layer) => {
+    if (layer.value) {
+        map.value.removeLayer(layer.value);
+    }
+};
+
 const fetchFarmZoneData = async (id) => {
     try {
         const response = await axios.get(`/api/farm-zone/${id}`);
@@ -135,14 +141,16 @@ const fetchNDVI = async () => {
             });
             const { tileUrlDate1, tileUrlDate2 } = response.data;
 
-            if (ndviLayer1.value) {
-                map1.value.removeLayer(ndviLayer1.value);
-            }
+            // Call the function for each layer
+            removeLayerIfExists(map1, ndviLayer1);
+            removeLayerIfExists(map1, eviLayer1);
+            removeLayerIfExists(map1, ndiiLayer1);
+
             ndviLayer1.value = L.tileLayer(tileUrlDate1, { opacity: 0.8, attribution: 'NDVI Layer for Date 1' }).addTo(map1.value);
 
-            if (ndviLayer2.value) {
-                map2.value.removeLayer(ndviLayer2.value);
-            }
+            removeLayerIfExists(map2, ndviLayer2);
+            removeLayerIfExists(map2, eviLayer2);
+            removeLayerIfExists(map2, ndiiLayer2);
             ndviLayer2.value = L.tileLayer(tileUrlDate2, { opacity: 0.8, attribution: 'NDVI Layer for Date 2' }).addTo(map2.value);
 
         } catch (error) {
@@ -164,14 +172,14 @@ const fetchEVI = async () => {
             });
             const { tileUrlDate1, tileUrlDate2 } = response.data;
 
-            if (eviLayer1.value) {
-                map1.value.removeLayer(eviLayer1.value);
-            }
+            removeLayerIfExists(map1, ndviLayer1);
+            removeLayerIfExists(map1, eviLayer1);
+            removeLayerIfExists(map1, ndiiLayer1);
             eviLayer1.value = L.tileLayer(tileUrlDate1, { opacity: 0.8, attribution: 'EVI Layer for Date 1' }).addTo(map1.value);
 
-            if (eviLayer2.value) {
-                map2.value.removeLayer(eviLayer2.value);
-            }
+            removeLayerIfExists(map2, ndviLayer2);
+            removeLayerIfExists(map2, eviLayer2);
+            removeLayerIfExists(map2, ndiiLayer2);
             eviLayer2.value = L.tileLayer(tileUrlDate2, { opacity: 0.8, attribution: 'EVI Layer for Date 2' }).addTo(map2.value);
 
         } catch (error) {
@@ -193,14 +201,14 @@ const fetchNDII = async () => {
             });
             const { tileUrlDate1, tileUrlDate2 } = response.data;
 
-            if (ndiiLayer1.value) {
-                map1.value.removeLayer(ndiiLayer1.value);
-            }
+            removeLayerIfExists(map1, ndviLayer1);
+            removeLayerIfExists(map1, eviLayer1);
+            removeLayerIfExists(map1, ndiiLayer1);
             ndiiLayer1.value = L.tileLayer(tileUrlDate1, { opacity: 0.8, attribution: 'NDII Layer for Date 1' }).addTo(map1.value);
 
-            if (ndiiLayer2.value) {
-                map2.value.removeLayer(ndiiLayer2.value);
-            }
+            removeLayerIfExists(map2, ndviLayer2);
+            removeLayerIfExists(map2, eviLayer2);
+            removeLayerIfExists(map2, ndiiLayer2);
             ndiiLayer2.value = L.tileLayer(tileUrlDate2, { opacity: 0.8, attribution: 'NDII Layer for Date 2' }).addTo(map2.value);
 
         } catch (error) {

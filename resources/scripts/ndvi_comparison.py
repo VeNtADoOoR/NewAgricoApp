@@ -1,50 +1,64 @@
 import ee
 import json
 import sys
+import datetime
 
 # Authenticate and initialize Earth Engine
 ee.Authenticate()
 ee.Initialize(project='ee-ventador')
 
+# Get the current date
+end_date = datetime.date.today().isoformat()
+
 def cloud_mask(image):
-    # Initialize a mask as a full (true) mask
-    mask = image.mask()  # Start with the full mask (all pixels valid)
+    # Mask both opaque and cirrus clouds
+    mask = image.mask()
 
-    # Check for the presence of specific cloud masking bands
-    if 'MSK_CLASSI_OPAQUE' in image.bandNames().getInfo():
-        opaque_clouds = image.select(['MSK_CLASSI_OPAQUE']).lt(1)
-        mask = mask.And(opaque_clouds)  # Update mask with opaque clouds
+    # Get the band names for the image (server-side)
+    band_names = image.bandNames()
+
+    # Check and apply MSK_CLASSI_OPAQUE cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('MSK_CLASSI_OPAQUE'),
+        mask.And(image.select('MSK_CLASSI_OPAQUE').lt(1)),
+        mask
+    ))
     
-    if 'MSK_CLASSI_CIRRUS' in image.bandNames().getInfo():
-        cirrus_clouds = image.select(['MSK_CLASSI_CIRRUS']).lt(1)
-        mask = mask.And(cirrus_clouds)  # Update mask with cirrus clouds
-
-    # Fallback to QA60 if necessary
-    if 'QA60' in image.bandNames().getInfo():
-        qa60_mask = image.select(['QA60']).lt(1)
-        mask = mask.And(qa60_mask)  # Combine with QA60 mask
-
-    # Optionally, you could also consider other QA bands like QA60
-    if 'QA10' in image.bandNames().getInfo():  # Example: using QA10 for additional masking
-        qa10_mask = image.select(['QA10']).lt(1)
-        mask = mask.And(qa10_mask)  # Combine with QA10 mask
+    # Check and apply MSK_CLASSI_CIRRUS cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('MSK_CLASSI_CIRRUS'),
+        mask.And(image.select('MSK_CLASSI_CIRRUS').lt(1)),
+        mask
+    ))
+    
+    # Fallback to QA60 cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('QA60'),
+        mask.And(image.select('QA60').lt(1)),
+        mask
+    ))
+    
+    # Fallback to QA10 cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('QA10'),
+        mask.And(image.select('QA10').lt(1)),
+        mask
+    ))
 
     # Apply the final combined mask to the image
     return image.updateMask(mask)
 
 
-
 def get_nearest_image(geojson_polygon, date):
     try:
         # Load Sentinel-2 data
-        collection = ee.ImageCollection('COPERNICUS/S2')\
-            .filterBounds(ee.Geometry.Polygon(geojson_polygon))
+        collection = ee.ImageCollection('COPERNICUS/S2_SR')\
+            .filterBounds(ee.Geometry.Polygon(geojson_polygon))\
+            .filterDate(ee.Date(date).advance(-7, 'days'), date)\
+            .map(cloud_mask)\
 
-        # Filter to find the nearest image before or on the specified date
-        nearest_image = collection\
-            .filterDate(ee.Date(date).advance(-5, 'days'), date)\
-            .sort('system:time_start', False)\
-            .first()
+        # Get the median image from the collection
+        nearest_image = collection.median()
 
         # Check if we got an image
         image_info = nearest_image.getInfo()
@@ -68,26 +82,9 @@ def compare_ndvi(geojson_polygon, date1, date2):
         print("No image found for date2")
         return None, None
 
-    # Apply cloud masking
-    image1 = cloud_mask(image1)
-    image2 = cloud_mask(image2)
-
-    # Select NIR and Red bands for NDVI calculation
-    NIR1 = image1.select('B8')
-    red1 = image1.select('B4')
-    NIR2 = image2.select('B8')
-    red2 = image2.select('B4')
-
-    # Apply NDVI formula
-    ndvi1 = image1.expression(
-        '(NIR - red) / (NIR + red)',
-        {'NIR': NIR1, 'red': red1}
-    ).rename('NDVI')
-
-    ndvi2 = image2.expression(
-        '(NIR - red) / (NIR + red)',
-        {'NIR': NIR2, 'red': red2}
-    ).rename('NDVI')
+    # Calculate NDVI using normalizedDifference on NIR (B8) and Red (B4)
+    ndvi1 = image1.normalizedDifference(['B8', 'B4']).rename('NDVI')
+    ndvi2 = image2.normalizedDifference(['B8', 'B4']).rename('NDVI')
 
     # Mask NDVI to the polygon
     polygon_geom = ee.Geometry.Polygon(geojson_polygon)
@@ -96,9 +93,9 @@ def compare_ndvi(geojson_polygon, date1, date2):
 
     # Define visualization parameters
     ndvi_params = {
-        'min': -1,
-        'max': 1,
-        'palette': ['brown', 'white', 'green']
+        'min': -0.2,
+        'max': 0.8,
+        'palette': ['blue', 'cyan', 'green', 'yellow', 'red']  # Enhanced color palette
     }
 
     # Get URLs for NDVI tile layers
@@ -106,6 +103,7 @@ def compare_ndvi(geojson_polygon, date1, date2):
     ndvi_map_id2 = ee.Image(ndvi_masked2).getMapId(ndvi_params)
 
     return ndvi_map_id1['tile_fetcher'].url_format, ndvi_map_id2['tile_fetcher'].url_format
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:

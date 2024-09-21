@@ -19,7 +19,7 @@ def calculate_ndvi(geojson_polygon):
         cirrus_clouds = image.select(['MSK_CLASSI_CIRRUS']).lt(1)
         return image.updateMask(opaque_clouds).updateMask(cirrus_clouds)
 
-    sentinel2 = ee.ImageCollection('COPERNICUS/S2')\
+    sentinel2 = ee.ImageCollection('COPERNICUS/S2_SR')\
         .filterDate(start_date, end_date)\
         .filterBounds(ee.Geometry.Polygon(geojson_polygon))\
         .map(cloud_mask)\
