@@ -54,6 +54,67 @@
               <span>Very Healthy</span>
               <span>Extremely Healthy</span>
             </div>
+            <div class="flex my-4">
+              <p>The normalized difference vegetation index is : <strong>{{ avgNdviValue }}</strong> </p>
+            </div>
+            <!-- Descriptions based on the NDVI value + recommandations-->
+            <div class="flex mb-4">
+              <p v-if="avgNdviValue <= 0">
+                The area you're viewing has little to no vegetation, possibly bare soil or water.
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Consider planting cover crops to reduce erosion and improve soil fertility.</li>
+                <li>Ensure proper water management to prevent waterlogging or drought conditions.</li>
+                <li>Test soil for nutrient levels to identify deficiencies before planting.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdviValue > 0 && avgNdviValue <= 0.2">
+                This zone has sparse vegetation or crops under stress. The soil may be exposed, or the crops are not
+                growing well.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Check irrigation levels and improve water supply if necessary.</li>
+                <li>Apply appropriate fertilizers to address any nutrient deficiencies.</li>
+                <li>Examine crops for pests or diseases and apply treatments if needed.</li>
+                <li>Consider replanting or adjusting crop types for better growth conditions.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdviValue > 0.2 && avgNdviValue <= 0.5">
+                The vegetation here is moderately dense, indicating healthy but not optimal crop growth.
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Maintain regular irrigation and fertilization to support further growth.</li>
+                <li>Monitor for early signs of pests or diseases and treat them promptly.</li>
+                <li>Ensure balanced soil nutrients by conducting regular soil tests.</li>
+                <li>Optimize planting density to improve crop uniformity and yield.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdviValue > 0.5 && avgNdviValue <= 0.7">
+                You're looking at an area with healthy, thriving vegetation. The crops are growing well.
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Continue current farming practices to maintain good growth.</li>
+                <li>Apply fertilizers as needed to keep crops nourished.</li>
+                <li>Monitor for any pests or diseases, even in healthy crops.</li>
+                <li>Consider using precision farming tools to maximize yield efficiency.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdviValue > 0.7">
+                This zone has extremely healthy and dense vegetation, indicating optimal growth conditions.
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Focus on maintaining soil health by rotating crops and applying organic matter.</li>
+                <li>Monitor for diseases, as dense crops may attract fungal infections or pests.</li>
+                <li>Ensure adequate water supply without overwatering to prevent root rot.</li>
+                <li>Prepare for harvesting or additional care to sustain the crop’s health.</li>
+              </ul>
+              </p>
+
+            </div>
           </div>
 
           <!-- EVI Legend -->
@@ -81,7 +142,6 @@
               <span>Wet</span>
             </div>
           </div>
-
 
         </div>
       </div>
@@ -111,6 +171,7 @@ const ndiiLayerVisible = ref(false); // Track if NDII layer is visible
 const NdviLoading = ref(false); // Track NDVI loading state
 const EviLoading = ref(false); // Track EVI loading state
 const NdiiLoading = ref(false); // Track NDII loading state
+const avgNdviValue = ref(null);
 
 const getFarmIdFromUrl = () => {
   const url = new URL(window.location.href);
@@ -167,6 +228,10 @@ const showNDVILayer = async () => {
   try {
     const response = await axios.get(`/api/farm-zone/${farmId.value}/ndvi`);
     const ndviTileUrl = response.data.tileUrl;
+    let avgNdvi = response.data.avg_ndvi_value;
+    // Round to 2 decimal places
+    avgNdvi = parseFloat(avgNdvi).toFixed(2); // This will return a string, but it's rounded to 2 decimal places
+    avgNdviValue.value = avgNdvi;
 
     // Remove existing layers if any
     if (ndviLayer.value) {

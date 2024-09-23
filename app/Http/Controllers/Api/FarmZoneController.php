@@ -116,7 +116,7 @@ class FarmZoneController extends Controller
         }
 
         // Return the NDVI tile URL to the frontend
-        return response()->json(['tileUrl' => $result['tile_url']]);
+        return response()->json(['tileUrl' => $result['tile_url'],'avg_ndvi_value'=> $result['avg_ndvi_value']]);
     }
 
     public function calculateEVI($id)

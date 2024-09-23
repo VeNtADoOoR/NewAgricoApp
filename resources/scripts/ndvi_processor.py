@@ -43,8 +43,18 @@ def calculate_ndvi(geojson_polygon):
     # Get a URL for the NDVI tile layer
     ndvi_map_id = ee.Image(ndvi_masked).getMapId(ndvi_params)
 
-    # Return the tile URL for NDVI visualization
-    return ndvi_map_id['tile_fetcher'].url_format
+    # Calculate the mean NDVI value over the polygon
+    mean_ndvi = ndvi_masked.reduceRegion(
+        reducer=ee.Reducer.mean(),
+        geometry=polygon_geom,
+        scale=10  # Adjust scale as needed
+    )
+
+    # Get the average NDVI value
+    avg_ndvi_value = mean_ndvi.get('NDVI').getInfo()
+
+    # Return both the tile URL for NDVI visualization and the average NDVI value
+    return ndvi_map_id['tile_fetcher'].url_format, avg_ndvi_value
 
 if __name__ == "__main__":
     # Get coordinates from command-line arguments
@@ -55,8 +65,8 @@ if __name__ == "__main__":
     try:
         geojson_polygon = json.loads(sys.argv[1])
         # Calculate NDVI and print the result
-        tile_url = calculate_ndvi(geojson_polygon)
-        print(json.dumps({"tile_url": tile_url}))
+        tile_url, avg_ndvi_value = calculate_ndvi(geojson_polygon)
+        print(json.dumps({"tile_url": tile_url, "avg_ndvi_value": avg_ndvi_value}))
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)

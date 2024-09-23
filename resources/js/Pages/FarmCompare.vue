@@ -45,6 +45,62 @@
                         focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out hover:shadow-lg" />
                 </div>
             </div>
+            <!-- Legend Container -->
+            <div class="flex-shrink-0 w-1/4 self-center my-5">
+                <div class="bg-white p-4 rounded shadow-lg"
+                    v-if="ndviLayerVisible || eviLayerVisible || ndiiLayerVisible">
+                    <h3 class="font-bold mb-2" v-if="ndviLayerVisible">NDVI Legend</h3>
+                    <h3 class="font-bold mb-2" v-if="eviLayerVisible">EVI Legend</h3>
+                    <h3 class="font-bold mb-2" v-if="ndiiLayerVisible">NDII Legend</h3>
+
+                    <!-- NDVI Legend -->
+                    <div v-if="ndviLayerVisible">
+                        <div class="flex items-center mb-2">
+                            <!-- Gradient Bar for NDVI -->
+                            <div class="w-full h-4"
+                                style="background: linear-gradient(to right, blue, cyan, green, yellow, red);">
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-1" id="ndvi">
+                            <span>Low</span>
+                            <span>Moderate</span>
+                            <span>Healthy</span>
+                            <span>Very Healthy</span>
+                            <span>Extremely Healthy</span>
+                        </div>
+                    </div>
+
+                    <!-- EVI Legend -->
+                    <div v-if="eviLayerVisible">
+                        <div class="flex items-center mb-2">
+                            <!-- Gradient Bar for EVI -->
+                            <div class="w-full h-4" style="background: linear-gradient(to right, blue, white, green);">
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-1" id="evi">
+                            <span>Low Vegetation</span>
+                            <span>Moderate Vegetation</span>
+                            <span>High Vegetation</span>
+                        </div>
+                    </div>
+
+                    <!-- NDII Legend -->
+                    <div v-if="ndiiLayerVisible">
+                        <div class="flex items-center mb-2">
+                            <!-- Gradient Bar for NDII -->
+                            <div class="w-full h-4" style="background: linear-gradient(to right, brown, white, green);">
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-1" id="ndii">
+                            <span>Dry</span>
+                            <span>Moderate</span>
+                            <span>Wet</span>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -73,6 +129,9 @@ const ndiiLayer2 = ref(null);
 const NdviLoading = ref(false); // Track NDVI loading state
 const EviLoading = ref(false); // Track EVI loading state
 const NdiiLoading = ref(false); // Track NDII loading state
+const ndviLayerVisible = ref(false); // Track if NDVI layer is visible
+const eviLayerVisible = ref(false);
+const ndiiLayerVisible = ref(false); // Track if NDII layer is visible
 
 const getFarmIdFromUrl = () => {
     const url = new URL(window.location.href);
@@ -160,11 +219,14 @@ const fetchNDVI = async () => {
             });
             const { tileUrlDate1, tileUrlDate2 } = response.data;
 
+            eviLayerVisible.value = false;
+            ndviLayerVisible.value = true;
+            ndiiLayerVisible.value = false;
+
             // Call the function for each layer
             removeLayerIfExists(map1, ndviLayer1);
             removeLayerIfExists(map1, eviLayer1);
             removeLayerIfExists(map1, ndiiLayer1);
-
             ndviLayer1.value = L.tileLayer(tileUrlDate1, { opacity: 0.8, attribution: 'NDVI Layer for Date 1' }).addTo(map1.value);
 
             removeLayerIfExists(map2, ndviLayer2);
@@ -195,6 +257,10 @@ const fetchEVI = async () => {
                 }
             });
             const { tileUrlDate1, tileUrlDate2 } = response.data;
+
+            eviLayerVisible.value = true;
+            ndviLayerVisible.value = false;
+            ndiiLayerVisible.value = false;
 
             removeLayerIfExists(map1, ndviLayer1);
             removeLayerIfExists(map1, eviLayer1);
@@ -229,6 +295,10 @@ const fetchNDII = async () => {
             });
             const { tileUrlDate1, tileUrlDate2 } = response.data;
 
+            eviLayerVisible.value = false;
+            ndviLayerVisible.value = false;
+            ndiiLayerVisible.value = true;
+
             removeLayerIfExists(map1, ndviLayer1);
             removeLayerIfExists(map1, eviLayer1);
             removeLayerIfExists(map1, ndiiLayer1);
@@ -262,5 +332,16 @@ onMounted(() => {
     height: 100%;
     width: 100%;
     z-index: 10;
+}
+#ndvi {
+  font-size: 12px;
+}
+
+#evi {
+  font-size: 12px;
+}
+
+#ndii {
+  font-size: 12px;
 }
 </style>
