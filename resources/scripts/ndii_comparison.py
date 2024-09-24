@@ -6,17 +6,55 @@ import sys
 ee.Authenticate()
 ee.Initialize(project='ee-ventador')
 
+def cloud_mask(image):
+    # Mask both opaque and cirrus clouds
+    mask = image.mask()
+
+    # Get the band names for the image (server-side)
+    band_names = image.bandNames()
+
+    # Check and apply MSK_CLASSI_OPAQUE cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('MSK_CLASSI_OPAQUE'),
+        mask.And(image.select('MSK_CLASSI_OPAQUE').lt(1)),
+        mask
+    ))
+    
+    # Check and apply MSK_CLASSI_CIRRUS cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('MSK_CLASSI_CIRRUS'),
+        mask.And(image.select('MSK_CLASSI_CIRRUS').lt(1)),
+        mask
+    ))
+    
+    # Fallback to QA60 cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('QA60'),
+        mask.And(image.select('QA60').lt(1)),
+        mask
+    ))
+    
+    # Fallback to QA10 cloud masking if it exists
+    mask = ee.Image(ee.Algorithms.If(
+        band_names.contains('QA10'),
+        mask.And(image.select('QA10').lt(1)),
+        mask
+    ))
+
+    # Apply the final combined mask to the image
+    return image.updateMask(mask)
+
 def get_nearest_image(geojson_polygon, date):
     try:
         # Load Sentinel-2 data
         collection = ee.ImageCollection('COPERNICUS/S2')\
-            .filterBounds(ee.Geometry.Polygon(geojson_polygon))
+            .filterBounds(ee.Geometry.Polygon(geojson_polygon))\
+            .filterDate(ee.Date(date).advance(-30, 'days'), date)\
+            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))\
+            .map(cloud_mask)
 
-        # Filter to find the nearest image before or on the specified date
-        nearest_image = collection\
-            .filterDate(ee.Date(date).advance(-5, 'days'), date)\
-            .sort('system:time_start', False)\
-            .first()
+        # Get the median image from the collection
+        nearest_image = collection.median()
 
         # Check if we got an image
         image_info = nearest_image.getInfo()
@@ -29,7 +67,7 @@ def get_nearest_image(geojson_polygon, date):
         print(f"Error retrieving nearest image: {e}")
         return None
 
-def calculate_ndvi(geojson_polygon, date1, date2):
+def calculate_ndii(geojson_polygon, date1, date2):
     image1 = get_nearest_image(geojson_polygon, date1)
     image2 = get_nearest_image(geojson_polygon, date2)
 
@@ -40,40 +78,27 @@ def calculate_ndvi(geojson_polygon, date1, date2):
         print("No image found for date2")
         return None, None
 
-    # Select NIR and Red bands for NDVI calculation
-    NIR1 = image1.select('B8')
-    red1 = image1.select('B4')
-    NIR2 = image2.select('B8')
-    red2 = image2.select('B4')
+    # Use built-in normalizedDifference to calculate NDII
+    ndii1 = image1.normalizedDifference(['B8', 'B11']).rename('NDII')  # NDII: (NIR - SWIR) / (NIR + SWIR)
+    ndii2 = image2.normalizedDifference(['B8', 'B11']).rename('NDII')  # NDII: (NIR - SWIR) / (NIR + SWIR)
 
-    # Apply NDVI formula
-    ndvi1 = image1.expression(
-        '(NIR - red) / (NIR + red)',
-        {'NIR': NIR1, 'red': red1}
-    ).rename('NDVI')
-
-    ndvi2 = image2.expression(
-        '(NIR - red) / (NIR + red)',
-        {'NIR': NIR2, 'red': red2}
-    ).rename('NDVI')
-
-    # Mask NDVI to the polygon
+    # Mask NDII to the polygon
     polygon_geom = ee.Geometry.Polygon(geojson_polygon)
-    ndvi_masked1 = ndvi1.clip(polygon_geom)
-    ndvi_masked2 = ndvi2.clip(polygon_geom)
+    ndii_masked1 = ndii1.clip(polygon_geom)
+    ndii_masked2 = ndii2.clip(polygon_geom)
 
     # Define visualization parameters
-    ndvi_params = {
+    ndii_params = {
         'min': -1,
         'max': 1,
         'palette': ['brown', 'white', 'green']
     }
 
-    # Get URLs for NDVI tile layers
-    ndvi_map_id1 = ee.Image(ndvi_masked1).getMapId(ndvi_params)
-    ndvi_map_id2 = ee.Image(ndvi_masked2).getMapId(ndvi_params)
+    # Get URLs for NDII tile layers
+    ndii_map_id1 = ee.Image(ndii_masked1).getMapId(ndii_params)
+    ndii_map_id2 = ee.Image(ndii_masked2).getMapId(ndii_params)
 
-    return ndvi_map_id1['tile_fetcher'].url_format, ndvi_map_id2['tile_fetcher'].url_format
+    return ndii_map_id1['tile_fetcher'].url_format, ndii_map_id2['tile_fetcher'].url_format
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
@@ -85,7 +110,7 @@ if __name__ == "__main__":
         date1 = sys.argv[2]
         date2 = sys.argv[3]
 
-        tile_url_date1, tile_url_date2 = calculate_ndvi(geojson_polygon, date1, date2)
+        tile_url_date1, tile_url_date2 = calculate_ndii(geojson_polygon, date1, date2)
 
         if tile_url_date1 and tile_url_date2:
             result = {
@@ -94,7 +119,7 @@ if __name__ == "__main__":
             }
             print(json.dumps(result))
         else:
-            print(json.dumps({"error": "NDVI calculation failed"}))
+            print(json.dumps({"error": "NDII calculation failed"}))
             sys.exit(1)
     except json.JSONDecodeError as e:
         print(json.dumps({"error": f"JSON decode error: {e}"}))

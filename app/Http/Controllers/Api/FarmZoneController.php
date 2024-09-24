@@ -142,7 +142,7 @@ class FarmZoneController extends Controller
         }
 
         // Return the NDVI tile URL to the frontend
-        return response()->json(['tileUrl' => $result['tile_url']]);
+        return response()->json(['tileUrl' => $result['tile_url'], 'avg_evi_value'=> $result['avg_evi_value']]);
     }
 
     public function calculateNDII($id)
@@ -168,7 +168,7 @@ class FarmZoneController extends Controller
         }
 
         // Return the NDVI tile URL to the frontend
-        return response()->json(['tileUrl' => $result['tile_url']]);
+        return response()->json(['tileUrl' => $result['tile_url'], 'avg_ndii_value'=> $result['avg_ndii_value']]);
     }
 
     public function compareNDII(Request $request, $id)

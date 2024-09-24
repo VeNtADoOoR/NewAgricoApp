@@ -60,7 +60,7 @@
             <!-- Descriptions based on the NDVI value + recommandations-->
             <div class="flex mb-4">
               <p v-if="avgNdviValue <= 0">
-                The area you're viewing has little to no vegetation, possibly bare soil or water.
+                The area you're viewing has little to no vegetation, possibly bare soil or water.<br><br>
                 <strong>Recommendations:</strong>
               <ul>
                 <li>Consider planting cover crops to reduce erosion and improve soil fertility.</li>
@@ -82,7 +82,7 @@
               </p>
 
               <p v-else-if="avgNdviValue > 0.2 && avgNdviValue <= 0.5">
-                The vegetation here is moderately dense, indicating healthy but not optimal crop growth.
+                The vegetation here is moderately dense, indicating healthy but not optimal crop growth.<br><br>
                 <strong>Recommendations:</strong>
               <ul>
                 <li>Maintain regular irrigation and fertilization to support further growth.</li>
@@ -93,7 +93,7 @@
               </p>
 
               <p v-else-if="avgNdviValue > 0.5 && avgNdviValue <= 0.7">
-                You're looking at an area with healthy, thriving vegetation. The crops are growing well.
+                You're looking at an area with healthy, thriving vegetation. The crops are growing well.<br><br>
                 <strong>Recommendations:</strong>
               <ul>
                 <li>Continue current farming practices to maintain good growth.</li>
@@ -104,7 +104,7 @@
               </p>
 
               <p v-else-if="avgNdviValue > 0.7">
-                This zone has extremely healthy and dense vegetation, indicating optimal growth conditions.
+                This zone has extremely healthy and dense vegetation, indicating optimal growth conditions.<br><br>
                 <strong>Recommendations:</strong>
               <ul>
                 <li>Focus on maintaining soil health by rotating crops and applying organic matter.</li>
@@ -128,6 +128,63 @@
               <span>Moderate Vegetation</span>
               <span>High Vegetation</span>
             </div>
+            <div class="flex my-4">
+              <p>The enhanced vegetation index is : <strong>{{ avgEviValue }}</strong> </p>
+            </div>
+
+            <div class="flex mb-4">
+              <p v-if="avgEviValue < 0">
+                The area you're viewing has very low vegetation health, possibly indicating stressed vegetation or
+                barren land.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Monitor for signs of vegetation stress and take necessary actions.</li>
+                <li>Consider irrigation and soil amendments to improve conditions.</li>
+                <li>Evaluate crop variety suitability for the area.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgEviValue >= 0 && avgEviValue < 0.1">
+                This zone shows low vegetation health, indicating potential stress in crops.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Assess water availability and improve irrigation practices.</li>
+                <li>Consider soil testing to identify nutrient deficiencies.</li>
+                <li>Monitor for drought conditions and implement preventative measures.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgEviValue >= 0.1 && avgEviValue < 0.3">
+                The vegetation here exhibits moderate health, indicating adequate but not optimal growth.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Continue regular irrigation and consider using mulch to retain soil moisture.</li>
+                <li>Ensure proper nutrient management through fertilization.</li>
+                <li>Monitor for early signs of pests or diseases.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgEviValue >= 0.3 && avgEviValue < 0.5">
+                You're looking at an area with good vegetation health, suggesting well-watered crops.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Maintain current irrigation practices to support optimal growth.</li>
+                <li>Regularly monitor for potential pest or disease outbreaks.</li>
+                <li>Consider implementing precision agriculture techniques to enhance yield.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgEviValue >= 0.5">
+                This zone shows very high vegetation health, indicating lush and thriving vegetation.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Ensure water management practices prevent overwatering.</li>
+                <li>Continue monitoring soil health and apply organic amendments as needed.</li>
+                <li>Prepare for harvesting while ensuring proper management to maintain crop health.</li>
+              </ul>
+              </p>
+            </div>
+
           </div>
 
           <!-- NDII Legend -->
@@ -141,8 +198,65 @@
               <span>Moderate</span>
               <span>Wet</span>
             </div>
-          </div>
+            <div class="flex my-4">
+              <p> The Normalized Difference Infrared Index is : <strong>{{ avgNdiiValue }}</strong> </p>
+            </div>
 
+            <div class="flex mb-4">
+              <p v-if="avgNdiiValue < 0">
+                The area you're viewing has very low moisture content, possibly indicating dry, barren land or stressed
+                vegetation.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Monitor for water stress in crops or vegetation.</li>
+                <li>Consider irrigation to support plant growth.</li>
+                <li>Evaluate soil health and amend as needed to improve moisture retention.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdiiValue >= 0 && avgNdiiValue < 0.1">
+                This zone shows low moisture levels, indicating potential stress in vegetation or bare soil.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Assess water availability and improve irrigation practices.</li>
+                <li>Apply appropriate fertilizers to address any nutrient deficiencies.</li>
+                <li>Monitor for drought conditions and take preventative measures.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdiiValue >= 0.1 && avgNdiiValue < 0.3">
+                The vegetation here exhibits moderate moisture levels, indicating healthy but not optimal
+                growth.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Continue regular irrigation and consider mulching to retain soil moisture.</li>
+                <li>Conduct soil tests to ensure nutrient levels are adequate.</li>
+                <li>Monitor for early signs of pest infestations or diseases.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdiiValue >= 0.3 && avgNdiiValue < 0.5">
+                You're looking at an area with healthy moisture content, suggesting well-watered vegetation.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Maintain current irrigation practices to support optimal growth.</li>
+                <li>Monitor for any potential pest or disease outbreaks.</li>
+                <li>Consider using precision agriculture techniques to enhance yield.</li>
+              </ul>
+              </p>
+
+              <p v-else-if="avgNdiiValue >= 0.5">
+                This zone has high moisture content, indicating lush and healthy vegetation.<br><br>
+                <strong>Recommendations:</strong>
+              <ul>
+                <li>Ensure water management practices prevent overwatering.</li>
+                <li>Continue monitoring soil health and apply organic matter as needed.</li>
+                <li>Prepare for harvesting while maintaining crop health through proper management.</li>
+              </ul>
+              </p>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
@@ -172,6 +286,8 @@ const NdviLoading = ref(false); // Track NDVI loading state
 const EviLoading = ref(false); // Track EVI loading state
 const NdiiLoading = ref(false); // Track NDII loading state
 const avgNdviValue = ref(null);
+const avgNdiiValue = ref(null);
+const avgEviValue = ref(null);
 
 const getFarmIdFromUrl = () => {
   const url = new URL(window.location.href);
@@ -267,6 +383,12 @@ const showEVILayer = async () => {
     const response = await axios.get(`/api/farm-zone/${farmId.value}/evi`);
     const eviTileUrl = response.data.tileUrl;
 
+
+    let avgEvi = response.data.avg_evi_value;
+    // Round to 2 decimal places
+    avgEvi = parseFloat(avgEvi).toFixed(2); // This will return a string, but it's rounded to 2 decimal places
+    avgEviValue.value = avgEvi;
+
     // Remove existing layers if any
     if (ndviLayer.value) {
       map.value.removeLayer(ndviLayer.value);
@@ -301,9 +423,14 @@ const showNDIILayer = async () => {
     const response = await axios.get(`/api/farm-zone/${farmId.value}/ndii`);
     const ndiiTileUrl = response.data.tileUrl;
 
+    let avgNdii = response.data.avg_ndii_value;
+    // Round to 2 decimal places
+    avgNdii = parseFloat(avgNdii).toFixed(2); // This will return a string, but it's rounded to 2 decimal places
+    avgNdiiValue.value = avgNdii;
+
     // Remove existing layers if any
-    if (ndiiLayer.value) {
-      map.value.removeLayer(ndiiLayer.value);
+    if (ndviLayer.value) {
+      map.value.removeLayer(ndviLayer.value);
       ndviLayerVisible.value = false; // Hide NDVI layer legend
     }
     if (eviLayer.value) {

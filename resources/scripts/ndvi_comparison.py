@@ -54,7 +54,8 @@ def get_nearest_image(geojson_polygon, date):
         # Load Sentinel-2 data
         collection = ee.ImageCollection('COPERNICUS/S2')\
             .filterBounds(ee.Geometry.Polygon(geojson_polygon))\
-            .filterDate(ee.Date(date).advance(-7, 'days'), date)\
+            .filterDate(ee.Date(date).advance(-30, 'days'), date)\
+            .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))\
             .map(cloud_mask)\
 
         # Get the median image from the collection

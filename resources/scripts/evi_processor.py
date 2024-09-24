@@ -25,7 +25,7 @@ def calculate_evi(geojson_polygon):
         .map(cloud_mask)\
         .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))\
         .median()
-
+    
     # Calculate EVI using the formula:
     # EVI = G * (NIR - RED) / (NIR + C1 * RED - C2 * BLUE + L)
     G = 2.5
@@ -64,8 +64,15 @@ def calculate_evi(geojson_polygon):
     # Get a URL for the EVI tile layer
     evi_map_id = ee.Image(evi_masked).getMapId(evi_params)
 
-    # Return the tile URL for EVI visualization
-    return evi_map_id['tile_fetcher'].url_format
+    # Calculate the mean EVI value over the polygon
+    avg_evi_value = evi_masked.reduceRegion(
+        reducer=ee.Reducer.mean(),
+        geometry=polygon_geom,
+        scale=10
+    ).get('EVI').getInfo()
+
+    # Return the tile URL for EVI visualization and the mean EVI value
+    return evi_map_id['tile_fetcher'].url_format, avg_evi_value
 
 if __name__ == "__main__":
     # Get coordinates from command-line arguments
@@ -76,8 +83,8 @@ if __name__ == "__main__":
     try:
         geojson_polygon = json.loads(sys.argv[1])
         # Calculate EVI and print the result
-        tile_url = calculate_evi(geojson_polygon)
-        print(json.dumps({"tile_url": tile_url}))
+        tile_url, avg_evi_value = calculate_evi(geojson_polygon)
+        print(json.dumps({"tile_url": tile_url, "avg_evi_value": avg_evi_value}))
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)

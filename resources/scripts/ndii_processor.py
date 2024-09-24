@@ -3,7 +3,7 @@ import json
 import sys
 import datetime
 
-# Authenticate and initialize Earth Engine
+# Authenticate and initialize Earth Engine to my project 'ventador'
 ee.Authenticate()
 ee.Initialize(project='ee-ventador')
 
@@ -26,18 +26,8 @@ def calculate_ndii(geojson_polygon):
         .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 10))\
         .median()
 
-    # Select NIR and SWIR bands for NDII calculation
-    NIR = sentinel2.select('B8')    # Near-infrared band
-    SWIR = sentinel2.select('B11')  # Shortwave-infrared band
-    
-    # Apply NDII formula: (NIR - SWIR) / (NIR + SWIR)
-    ndii = sentinel2.expression(
-        '(NIR - SWIR) / (NIR + SWIR)',
-        {
-            'NIR': NIR,
-            'SWIR': SWIR
-        }
-    ).rename('NDII')
+    # Calculate NDII using normalizedDifference (NIR: B8, SWIR: B11)
+    ndii = sentinel2.normalizedDifference(['B8', 'B11']).rename('NDII')
 
     # Mask NDII to the polygon
     polygon_geom = ee.Geometry.Polygon(geojson_polygon)
@@ -53,8 +43,15 @@ def calculate_ndii(geojson_polygon):
     # Get a URL for the NDII tile layer
     ndii_map_id = ee.Image(ndii_masked).getMapId(ndii_params)
 
-    # Return the tile URL for NDII visualization
-    return ndii_map_id['tile_fetcher'].url_format
+    # Calculate the mean NDII value over the polygon
+    avg_ndii_value = ndii_masked.reduceRegion(
+        reducer=ee.Reducer.mean(),
+        geometry=polygon_geom,
+        scale=10
+    ).get('NDII').getInfo()
+
+    # Return the tile URL for NDII visualization and the mean NDII value
+    return ndii_map_id['tile_fetcher'].url_format, avg_ndii_value
 
 if __name__ == "__main__":
     # Get coordinates from command-line arguments
@@ -65,8 +62,8 @@ if __name__ == "__main__":
     try:
         geojson_polygon = json.loads(sys.argv[1])
         # Calculate NDII and print the result
-        tile_url = calculate_ndii(geojson_polygon)
-        print(json.dumps({"tile_url": tile_url}))
+        tile_url, avg_ndii_value = calculate_ndii(geojson_polygon)
+        print(json.dumps({"tile_url": tile_url, "avg_ndii_value": avg_ndii_value}))
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)
