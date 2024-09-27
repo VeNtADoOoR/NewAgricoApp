@@ -54,14 +54,16 @@
                                 </svg>
                             </div>
                             <!-- Dropdown Menu -->
-                            <div v-if="userDropdownOpen" 
+                            <div v-if="userDropdownOpen"
                                 class="absolute right-0 mt-2 w-48 bg-green-100 rounded-md shadow-lg py-1 z-50">
-                                <ResponsiveNavLink to="/profile"
+
+                                <ResponsiveNavLink href="/dashboard"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink href="/profile"
                                     class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile
                                 </ResponsiveNavLink>
-                                <ResponsiveNavLink to="/settings"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings
-                                </ResponsiveNavLink>
+
                                 <!-- Updated Logout Form -->
                                 <form method="POST" @submit.prevent="logout">
                                     <ResponsiveNavLink as="button"
@@ -133,7 +135,7 @@ const userDropdownOpen = ref(false);
 
 const { props } = usePage();
 const user = props.auth.user;
-const userPhoto = ref(user?.profile_photo_path || '/images/default-user-photo.jpg');
+const userPhoto = ref(user?.profile_photo_path ? `${window.location.origin}/storage/${user.profile_photo_path}` : '/images/default-user-photo.jpg');
 const fullName = ref(`${user?.first_name} ${user?.last_name}`);
 
 const logout = async () => {

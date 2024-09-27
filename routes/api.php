@@ -19,6 +19,10 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/farm-zone/{id}/ndii-comparison', [FarmZoneController::class, 'compareNDII']);
     Route::get('/farm-zone/{id}/ndvi-comparison', [FarmZoneController::class, 'compareNDVI']);
     Route::get('/farm-zone/{id}/evi-comparison', [FarmZoneController::class, 'compareEVI']);
+    Route::put('/user/{id}/update-name', [UserController::class,'updateName']);
+    Route::post('/user/{id}/update-photo', [UserController::class,'updatePhoto']);
+    Route::put('/user/{id}/update-password', [UserController::class,'updatePassword']);
+    Route::post('/user/update-email', [UserController::class,'updateEmail']);
 });
 
 

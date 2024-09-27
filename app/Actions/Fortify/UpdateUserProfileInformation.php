@@ -19,8 +19,9 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     public function update(Authenticatable $user, array $input): void
     {
         Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'agr_email')->ignore($user->id)], // Updated to use agr_email
+            'agr_name' => ['required', 'string', 'max:255'],
+            'agr_lname' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)], // Updated to use agr_email
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
         ])->validateWithBag('updateProfileInformation');
 
@@ -29,13 +30,14 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         }
 
         if (
-            $input['email'] !== $user->agr_email && // Updated to use agr_email
+            $input['email'] !== $user->email && // Updated to use agr_email
             $user instanceof MustVerifyEmail
         ) {
             $this->updateVerifiedUser($user, $input);
         } else {
             $user->forceFill([
                 'agr_fname' => $input['name'], // Updated to use agr_fname
+                'agr_lname' => $input['l_name'], // Updated to use agr_fname
                 'email' => $input['email'], // Updated to use agr_email
             ])->save();
         }
@@ -50,6 +52,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         $user->forceFill([
             'agr_fname' => $input['name'], // Updated to use agr_fname
+            'agr_lname' => $input['l_name'],
             'email' => $input['email'], // Updated to use agr_email
             'email_verified_at' => null,
         ])->save();

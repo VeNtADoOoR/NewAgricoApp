@@ -56,7 +56,7 @@ const submit = () => {
                     class="mt-1 block w-full"
                     required
                     autofocus
-                    autocomplete="name"
+                    autocomplete="l_name"
                 />
                 <InputError class="mt-2" :message="form.errors.l_name" />
             </div>

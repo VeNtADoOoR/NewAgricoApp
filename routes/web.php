@@ -38,6 +38,12 @@ Route::middleware([
     Route::get('/notifications', function () {
         return Inertia::render('NotificationInterface');
     })->name('NotificationInterface');
+
     Route::get('/farm-view/{id}', [FarmZoneController::class, 'viewFarm'])->name('FarmView');
+
     Route::get('/farm-compare/{id}', [FarmZoneController::class, 'compareFarm'])->name('FarmCompare');
+
+    Route::get('/profile', function () {
+        return Inertia::render('Profile');
+    })->name('Profile');
 });

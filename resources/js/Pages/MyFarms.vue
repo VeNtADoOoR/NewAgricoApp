@@ -79,7 +79,7 @@ const cancelUpdate = () => {
             <thead class="bg-green-700">
               <tr>
                 <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Farm Name</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Surface(ha)</th>
+                <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Area(ha)</th>
                 <th class="px-6 py-3 text-left text-sm font-medium text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
