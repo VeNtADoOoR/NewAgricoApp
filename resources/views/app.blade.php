@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
-        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB-a9MpNLxvCNnaKEYD-2jAv25UG6tPEIQ"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=IREMOVEDMYKEY"></script>
 
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="api_token" content="{{ optional(Auth::user())->api_token }}">
